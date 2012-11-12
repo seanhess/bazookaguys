@@ -25,6 +25,10 @@ Hit List
 * Rocket animation 
 * (bug) you can kill yourself?
 * (bug) disconnect from missiles too (in game)
+* Collide with other players
+* Two missiles colliding should explode
+* <script async></script> loading
+* deploy to server with REAL domain (can heroku do it? Do you need hosting?)
 
 * (clean) use signals/events instead of $rootScope.broadcast
 * (clean) going back to the main page should clean up the game. 
