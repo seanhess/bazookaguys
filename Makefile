@@ -8,12 +8,13 @@ install:
 	node_modules/.bin/bower install
 
 
-deploy:
+upload:
 	# sync all the files
 	rsync -rav -e ssh --delete --exclude-from config/exclude.txt . deploy@bazookaguys:~/bazookaguys
 
+deploy: upload
 	# run the remote commands
-	ssh -t deploy@bazookaguys < config/deploy.sh
+	ssh -t deploy@bazookaguys "~/bazookaguys/config/deploy.sh"
 
 
 # doesn't work yet! it clobbers the angularjs parameter names!

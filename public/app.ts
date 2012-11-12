@@ -14,7 +14,11 @@
 var app = angular.module('app', ['controllers'], function ($routeProvider: ng.IRouteProviderProvider) {
   $routeProvider.when('/game/:gameId', {templateUrl: 'partials/game.html', controller: "GameCtrl"})
   $routeProvider.when('/paid', {templateUrl: 'partials/paid.html', controller: "PaymentCtrl"})
-  $routeProvider.when('/identify', {templateUrl: 'partials/identify.html', controller: "IdentifyCtrl"})
+  $routeProvider.when('/identify', {template: document.getElementById("identify.html").innerHTML, templateUrl: 'partials/identify.html', controller: "IdentifyCtrl"})
+  //$routeProvider.when('/identify', {templateUrl: 'partials/identify.html', controller: "IdentifyCtrl"})
 
   $routeProvider.otherwise({redirectTo: '/identify'})
 })
+
+// wasn't working on google hangout
+angular.bootstrap($(document), ['app'])

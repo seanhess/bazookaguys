@@ -1,14 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+<!-- Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *      
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License
+-->
+
+<ModulePrefs title="Underwater Adventure Rocket Bazooka Guys II">
+  <Require feature="rpc" />
+  <Require feature="views" />
+</ModulePrefs>
+
+<Content type="html"><![CDATA[     
 <!doctype html>
-<html lang="en" ng-app="app">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Underwater Adventure Rocket Bazooka Guys II</title>
-  <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="http://bazookaguys.tk/css/main.css"/>
+  <script src="//hangoutsapi.talkgadget.google.com/hangouts/_/api/hangout.js?v=1.2"></script>
 </head>
 <body>
     <div ng-view></div>
 
-    <!-- Libraries: TODO switch to AMD once typescript is less stupid -->
     <script src="//static.firebase.com/v0/firebase.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.2/underscore-min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
@@ -74,15 +95,8 @@
 </div>
     </script>
 
-
-    <!-- Application Code -->
-    <script src="main.js"></script>
-
-  <a href="//plus.google.com/hangouts/_?gid=123456789012" style="text-decoration:none;">
-    <img src="//ssl.gstatic.com/s2/oz/images/stars/hangout/1/gplus-hangout-24x100-normal.png"
-      alt="Start a Hangout"
-      style="border:0;width:100px;height:24px;"/>
-  </a>
-
+    <script src="http://bazookaguys.tk/main.js"></script>
 </body>
 </html>
+]]></Content>
+</Module>
