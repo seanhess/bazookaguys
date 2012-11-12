@@ -7,11 +7,17 @@ install:
 	npm install
 	node_modules/.bin/bower install
 
+
 deploy:
 	# sync all the files
 	rsync -rav -e ssh --delete --exclude-from config/exclude.txt . deploy@bazookaguys:~/bazookaguys
-	
+
 	# run the remote commands
 	ssh -t deploy@bazookaguys < config/deploy.sh
 
 
+# doesn't work yet! it clobbers the angularjs parameter names!
+optimize: build
+	node_modules/.bin/uglifyjs --overwrite --no-copyright --no-mangle --verbose public/main.js > public/main-uglified.js
+	rm public/main.js
+	mv public/main-uglified.js public/main.js
