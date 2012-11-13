@@ -1,6 +1,12 @@
 all: build
 
-build:
+build: public-build api-build
+
+api-build:
+	# doesn't work to to --out if you use the module pattern at all
+	node_modules/.bin/tsc api/server.ts
+
+public-build:
 	node_modules/.bin/tsc --out public/main.js public/app.ts
 
 install:

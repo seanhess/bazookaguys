@@ -284,6 +284,13 @@ html {
   margin: 10px;
   background-color: #333;
 }
+#identify .menu .login {
+  margin: 10px;
+  clear: both;
+  height: 20px;
+  width: 180px;
+  padding-top: 10px;
+}
 #identify .menu .join {
   margin: 10px;
   font-size: 40px;
