@@ -9,12 +9,14 @@ interface IdentifyScope extends ng.IScope {
   intro:string;
   error:string;
 
-  version:any;
-  player:any;
+  version:string;
   gameId:string;
   players:IPlayerState;
   avatars:string [];
   freeAvatars:string [];
+
+  playerName:string;
+  playerAvatar:string;
 
   avatarIsFree(name:string): bool;
   avatarIsAvailable(name:string): bool;
@@ -39,8 +41,10 @@ angular.module('controllers').controller('IdentifyCtrl', function($scope: Identi
     $scope.version = AppVersion
 
     // see if they have a preferred name and gameId
-    $scope.player = CurrentPlayer.loadPreferences()
-    $scope.gameId = $scope.player.gameId || "global"
+    var prefs = CurrentPlayer.loadPreferences()
+    $scope.playerAvatar = prefs.avatar
+    $scope.playerName = prefs.name
+    $scope.gameId = prefs.gameId || "global"
 
     // [ ] detect which game to join ("global")
     var players = Players.connect($scope.gameId, "Identify")
@@ -68,32 +72,32 @@ angular.module('controllers').controller('IdentifyCtrl', function($scope: Identi
     // If game doesn't have a current player, then go back to the identify/matchmaking screen!
 
     $scope.join = function() {
-      if (!$scope.player || !$scope.player.avatar || !$scope.player.name) {
+      if (!$scope.playerAvatar || !$scope.playerName) {
         $scope.error = "Please select a valid name and an avatar"
         return
       }
 
-      if (Players.playerByName(players.all, $scope.player.name)) {
-        $scope.error = '"' + $scope.player.name + '" is already taken'
+      if (Players.playerByName(players.all, $scope.playerName)) {
+        $scope.error = '"' + $scope.playerName + '" is already taken'
         return
       }
 
-      CurrentPlayer.player = $scope.player
-      CurrentPlayer.savePreferences(CurrentPlayer.player, $scope.gameId)
-      $location.path("/game/" + $scope.gameId)
+      CurrentPlayer.savePreferences($scope.playerName, $scope.playerAvatar, $scope.gameId)
+      $location
+        .path("/game/" + $scope.gameId)
+        .search({avatar:$scope.playerAvatar, name:$scope.playerName})
     }
 
     $scope.selectAvatar = function(name) {
       if ($scope.avatarIsAvailable(name)) {
-        $scope.player = $scope.player || {}
-        $scope.player.avatar = name
+        $scope.playerAvatar = name
       } else {
         window.location.href = "https://spb.io/s/osgtq3F3kS";
       }
     }
 
     $scope.isPlayerAvatar = function(name) {
-      return ($scope.player && $scope.player.avatar == name)
+      return ($scope.playerAvatar == name)
     }
 
     $scope.$on('$destroy', function() {

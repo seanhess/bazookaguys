@@ -54,7 +54,7 @@ interface IPlayerService {
 
   connect(gameId:string, id:string):IPlayerState;
   disconnect(state:IPlayerState);
-  join(state:IPlayerState, player:IPlayer);
+  join(state:IPlayerState, name:string, avatar:string);
   killPlayer(state:IPlayerState, player:IPlayer, killerName:string);
   move(state:IPlayerState, player:IPlayer);
 
@@ -131,18 +131,24 @@ angular.module('services')
   }
 
   // you need to define the functions in here, so they have access to the state!
-  function join(state:IPlayerState, player:IPlayer) {
+  function join(state:IPlayerState, name:string, avatar:string) {
 
-    state.myname = player.name
+    state.myname = name
 
-    player.x = Board.randomX()
-    player.y = Board.randomY()
-    player.direction = Board.DOWN
-    player.state = STATE.ALIVE
-    player.wins = player.wins || 0
-    player.losses = player.losses || 0
-    player.taunt = null
-    player.version = AppVersion
+    var player:IPlayer = {
+      name: name,
+      avatar: avatar,
+      x: Board.randomX(),
+      y: Board.randomY(),
+      direction: Board.DOWN,
+      state: STATE.ALIVE,
+      wins: 0,
+      losses: 0,
+      taunt: null,
+      version: AppVersion,
+    }
+
+    console.log("JOIN", player.name)
 
     var ref = state.playersRef.child(player.name)
     ref.removeOnDisconnect();

@@ -6,10 +6,10 @@ interface IPreferences {
   gameId:string;
 }
 
+// I should put it in the URL anyway
 interface ICurrentPlayerService {
-  player:IPlayer;
   loadPreferences():IPreferences;
-  savePreferences(player:IPlayer, gameId:string);
+  savePreferences(name:string, avatar:string, gameId:string);
 }
 
 angular.module('services')
@@ -25,15 +25,14 @@ angular.module('services')
     }
   }
 
-  function savePreferences(player:IPlayer, gameId:string) {
-    localStorage.setItem("avatar", player.avatar)
-    localStorage.setItem("name", player.name)
+  function savePreferences(name:string, avatar:string, gameId:string) {
+    localStorage.setItem("avatar", avatar)
+    localStorage.setItem("name", name)
     localStorage.setItem("gameId", gameId)
   }
 
   return {
-    player: null,
     loadPreferences: loadPreferences,
-    savePreferences: savePreferences
+    savePreferences: savePreferences,
   }
 })

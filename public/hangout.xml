@@ -24,78 +24,10 @@
 <head>
   <meta charset="utf-8">
   <title>Underwater Adventure Rocket Bazooka Guys II</title>
-  <link rel="stylesheet" href="http://bazookaguys.tk/css/main.css"/>
   <script src="//hangoutsapi.talkgadget.google.com/hangouts/_/api/hangout.js?v=1.2"></script>
 </head>
 <body>
-    <div ng-view></div>
-
-    <script src="//static.firebase.com/v0/firebase.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.2/underscore-min.js"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.1/angular.min.js"></script>
-
-    <script type="text/ng-template" id="identify.html">
-      <div id="identify">
-
-  <div class="version">v{{version}}</div>
-
-  <div class="menu {{intro}}">
-    <div class="upgrade-link">
-      <span ng-hide="players.isPaid" ><a class="upgrade-button" href="https://spb.io/s/osgtq3F3kS">Pay $1.00 to unlock all features!</a></span>
-      <span ng-show="players.isPaid">Thank you for your support!</span>
-    </div>
-
-    <div class="avatarSelection">
-      <div 
-        ng-repeat="name in avatars"
-        class="avatar {{name}}" 
-        ng-class="{selected: isPlayerAvatar(name), locked: avatarIsLocked(name)}"
-        ng-click="selectAvatar(name)"
-      ><div ng-show="avatarIsLocked(name)"><img class="lock-image" src="/images/lock.png"></div>
-      </div>
-    </div>
-
-    <div class="playerNameInput">
-      <input ng-model="player.name" placeholder="Your Name">
-    </div>
-   
-    <div>
-      <button class="join" ng-click="join()">PLAY</button>
-    </div>
-
-    <div class="error" ng-show="error">{{error}}</div>
-
-    <div class="leaderboard">
-      <div class="playerCard {{player.state}}"
-        ng-repeat="player in players.all | orderBy:'-wins'">
-        <div class="name">{{player.name}}</div>
-        <div class="avatarbg">
-          <div class="avatar {{player.avatar}}"></div>
-        </div>
-        <div class="score"><div class="label">Points</div><div class="num">{{player.wins}}</div></div>
-        <div class="status">
-          <div class="skull"></div>
-        </div>
-      </div>
-   </div>
-
-    <div class="gameId">
-      <input ng-model="gameId">
-    </div>
-
-
-  </div>
-
-  <div class="water">
-    <img 
-      class="title {{intro}}" 
-      src="/images/title.png">
-  </div>
-</div>
-    </script>
-
-    <script src="http://bazookaguys.tk/main.js"></script>
+  <iframe src="http://bazookaguys.tk/" style="width: 960px; height: 660px"></iframe>
 </body>
 </html>
 ]]></Content>

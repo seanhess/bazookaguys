@@ -19,7 +19,7 @@
     </div>
 
     <div class="playerNameInput">
-      <input ng-model="player.name" placeholder="Your Name">
+      <input ng-model="playerName" placeholder="Your Name">
     </div>
    
     <div>
@@ -31,7 +31,7 @@
     <div class="leaderboard">
       <div class="playerCard {{player.state}}"
         ng-repeat="player in players.all | orderBy:'-wins'">
-        <div class="name">{{player.name}}</div>
+        <div class="name">{{playerName}}</div>
         <div class="avatarbg">
           <div class="avatar {{player.avatar}}"></div>
         </div>
