@@ -3,5 +3,5 @@
 angular.module('services')
 
 .factory('AppVersion', function():string {
-  return "1.4"
+  return "1.4.hangout"
 })
