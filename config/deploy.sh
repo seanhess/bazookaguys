@@ -13,8 +13,6 @@ echo "DEPLOY"
 # RSYNC DEPLOY (don't have to push)
 # see Makefile
 
-cd ~/bazookaguys
-
 # make sure we are built
 make install
 make build
