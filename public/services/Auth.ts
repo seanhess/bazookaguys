@@ -20,14 +20,14 @@ angular.module('services')
     return {
       getUser:getUser,
       logout: logout,
-      twitterAuthUrl: "/auth/twitter/login",
+      twitterAuthUrl: "/api/auth/twitter/login",
     }
 
     // "promise" oriented status fetcher
     function getUser():IAuthUser {
       var user:IAuthUser = {username: null}
 
-      $http.get("/auth/user")
+      $http.get("/api/auth/user")
 
       .success(function(data:IAuthUser) {
         console.log("SUCCESS!!!", data)
@@ -39,6 +39,6 @@ angular.module('services')
 
     function logout(user:IAuthUser) {
       user.username = null
-      $http.post('/auth/logout')
+      $http.post('/api/auth/logout')
     }
 })
