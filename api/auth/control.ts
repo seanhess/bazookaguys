@@ -2,10 +2,9 @@ import express = module('express')
 import express2 = module('def/express2')
 var OAuth = require('oauth').OAuth
 
+// TODO how do you just see if they are authorized? (if they have a session set or not!) Do you have their info?
+
 export var routes = <express2.ServerApplication> express.createServer()
-
-
-/*
 
 interface IOAuthOptions {
   requestUrl: string;
@@ -17,20 +16,36 @@ interface IOAuthOptions {
   signatureMethod: string; // HMAC-SHA1
 }
 
-var TWITTER = {
-  requestUrl:"https://twitter.com/oauth/request_token",
-  accessUrl:"https://twitter.com/oauth/access_token",
-  consumerKey: "",
-  consumerSecret: "",
-  version: "1.0A",
-  callbackUrl: "",
-  signatureMethod: "HMAC-SHA1",
-  //NONCE_SIZE: "",
-  //CUSTOM_HEADERS: "",
+// my session
+interface ISession {
+  oauth: ISessionOauth;
+}
+interface ISessionOauth {
+  requestToken:string;
+  requestSecret:string;
 }
 
-function makeConsumer(options:IOAuthOptions) {
-  return new Oauth(options.requestUrl, options.accessUrl, options.consumerKey, options.consumerSecret, options.version, options.callbackUrl, options.signatureMethod)
+function consumer(options:IOAuthOptions) {
+  return new OAuth(options.requestUrl, options.accessUrl, options.consumerKey, options.consumerSecret, options.version, options.callbackUrl, options.signatureMethod)
+}
+
+// Use OAuth 1.0a rather than the newer version, because they don't have long-lived
+// tokens on their newer system
+// key and secret: your twitter consumer key and secret. Get one at developer.twitter.com
+// callbackUrl: you have to have a url that twitter calls after they finish log
+function twitterConsumer(key:string, secret:string, callbackUrl:string) {
+  return consumer({
+    requestUrl:"https://api.twitter.com/oauth/request_token",
+    //requestUrl:"http://localhost:3000/auth/debug",
+    accessUrl:"https://api.twitter.com/oauth/access_token",
+    consumerKey: key,
+    consumerSecret: secret,
+    version: "1.0A",
+    callbackUrl: callbackUrl,
+    signatureMethod: "HMAC-SHA1",
+    //NONCE_SIZE: "",
+    //CUSTOM_HEADERS: "",
+  })
 }
 
 // is github any eaiser?
@@ -41,10 +56,27 @@ function makeConsumer(options:IOAuthOptions) {
 
 var API_BASE_URL = "http://localhost:3000"
 
-var twitter = makeConsumer(TWITTER)
+var twitter = twitterConsumer("tns3FETsDLzkZjbtOBQ", "uzWAVNVKwXL1lSRao8osjBhjYdUByweC0b1H8FE7ExU", "http://localhost:3000/auth/twitter/callback")
+console.log("WOOT", twitter)
 
 // this is a webpage the user loads... in their own window
-routes.post('/auth/twitter/login', function(req, res) {
+// you could store info in the user profile instead??
+// but you'd still have to match it up :(
+
+// No, you could have a custom callback!
+// doesn't have to be the same for all requests, right?
+// so why not include the token and secret in the url?
+// then you'll have all 4 in the same url
+
+routes.get('/auth/twitter/login', function(req:express2.ServerRequest, res) {
+  twitter.getOAuthRequestToken(function(err, requestToken, requestSecret, results) {
+    //console.log("REQUEST", err, requestToken, requestSecret, results)
+    (<ISession> req.session).oauth = {
+      requestToken: requestToken,
+      requestSecret: requestSecret,
+    }
+    res.redirect("https://api.twitter.com/oauth/authorize?oauth_token=" + requestToken)
+  })
   // 1 // obtain a request token
   // 2 // redirect to login screen -> calls your site back with the informationz..
 })
@@ -59,10 +91,22 @@ routes.post('/auth/twitter/login', function(req, res) {
 // you have to issue a callback.. blech
 // well, the callback could be a route that's supposed to be called with the information
 
-routes.post('/auth/twitter/callback', function(req, res) {
-
+routes.get('/auth/twitter/callback', function(req:express2.ServerRequest, res) {
+    var oauthToken = req.param('oauth_token')
+    var oauthVerifier = req.param('oauth_verifier')
+    var session:ISessionOauth = req.session
+    console.log("CALLBACK2", oauthToken, oauthVerifier, req.session)
+    twitter.getOAuthAccessToken(req.session.oauth.requestToken, req.session.oauth.requestSecret, oauthVerifier, function(err, accessToken, accessSecret, profile) {
+      console.log("ALL DONE", err, accessToken, accessSecret, profile)
+      // profile = {user_id: '1
+      // { user_id: '15780886', screen_name: 'seanhess' }
+      res.send(200)
+    })
 })
-*/
+
+routes.post('/auth/debug', function(req, res) {
+    console.log("DEBUG", req.body, req.headers)
+})
 
 
 // https://api.twitter.com/

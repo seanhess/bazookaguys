@@ -24,3 +24,7 @@ export interface ServerApplication extends express.ServerApplication {
   post(path: string, ...callbacks: IHandler[]): void;
   //post(path: string, callbacks: any, callback: () => void ): void;
 }
+
+export interface ServerRequest extends express.ServerRequest {
+  session:any;
+}

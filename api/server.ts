@@ -26,7 +26,7 @@ app.configure("development", () => {
 
 app.use((<any> express).cookieParser())
 app.use((<any> express).bodyParser())
-app.use((<any> express).session({secret: 'funky monkey'}))
+app.use((<any> express).session({secret: 'funky monkey', key: 'blah', store:new (<any>express).session.MemoryStore()}))
 
 app.use(auth.routes)
 
