@@ -21,5 +21,5 @@ var app = angular.module('app', ['controllers'], function ($routeProvider: ng.IR
   $routeProvider.otherwise({redirectTo: '/identify'})
 })
 
-// wasn't working on google hangout
+// ng-app wasn't always working. Make sure you don't have both!
 angular.bootstrap($(document), ['app'])

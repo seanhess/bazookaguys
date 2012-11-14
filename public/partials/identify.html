@@ -26,11 +26,15 @@
     </div>
 
     <div class="login">
-      <img src="images/sign-in-with-twitter-gray.png">
+      <a href="{{twitterAuthUrl}}"><img ng-hide="user.username" src="images/sign-in-with-twitter-gray.png"></a>
+      <div ng-show="user.username" class="info">
+        <span>{{user.username}}</span>
+        <a ng-click="logout()">logout</a>
+      </div>
     </div>
    
     <div>
-      <button class="join" ng-click="join()">PLAY</button>
+      <button class="join" ng-click="join()" ng-disabled="!user.username">PLAY</button>
     </div>
 
     <div class="error" ng-show="error">{{error}}</div>
@@ -38,7 +42,7 @@
     <div class="leaderboard">
       <div class="playerCard {{player.state}}"
         ng-repeat="player in players.all | orderBy:'-wins'">
-        <div class="name">{{playerName}}</div>
+        <div class="name">{{player.name}}</div>
         <div class="avatarbg">
           <div class="avatar {{player.avatar}}"></div>
         </div>

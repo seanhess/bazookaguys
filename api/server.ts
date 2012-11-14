@@ -17,6 +17,7 @@ app.configure("development", () => {
   app.use(stylus.middleware({
     src: 'public',
     compile: (str, path) => {
+      console.log("stylus: ", path)
       return stylus(str).use(nib()).import('nib').set('filename', path)
     }
   }))

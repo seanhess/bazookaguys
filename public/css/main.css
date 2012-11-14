@@ -290,6 +290,10 @@ html {
   height: 20px;
   width: 180px;
   padding-top: 10px;
+  color: #fff;
+}
+#identify .menu .login a {
+  color: #fff;
 }
 #identify .menu .join {
   margin: 10px;

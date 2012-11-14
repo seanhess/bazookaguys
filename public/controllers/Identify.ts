@@ -2,6 +2,7 @@
 
 ///<reference path="../services/Players"/>
 ///<reference path="../services/CurrentPlayer"/>
+///<reference path="../services/Auth"/>
 
 console.log("Register: IdentifyCtrl")
 
@@ -15,6 +16,10 @@ interface IdentifyScope extends ng.IScope {
   avatars:string [];
   freeAvatars:string [];
 
+  user:IAuthUser;
+  twitterAuthUrl:string;
+  logout();
+
   playerName:string;
   playerAvatar:string;
 
@@ -26,7 +31,8 @@ interface IdentifyScope extends ng.IScope {
   isPlayerAvatar(name:string): bool;
 }
 
-angular.module('controllers').controller('IdentifyCtrl', function($scope: IdentifyScope, $location: any, Players:IPlayerService, CurrentPlayer: any, AppVersion: string) {
+angular.module('controllers')
+.controller('IdentifyCtrl', function($scope: IdentifyScope, $location: ng.ILocationService, Players:IPlayerService, CurrentPlayer: any, AppVersion: string, Auth:IAuth) {
 
     // HACKY way to do the transition
     $scope.intro = "intro"
@@ -40,10 +46,12 @@ angular.module('controllers').controller('IdentifyCtrl', function($scope: Identi
 
     $scope.version = AppVersion
 
+    $scope.user = Auth.getUser() // gets the currently logged in user
+    $scope.twitterAuthUrl = Auth.twitterAuthUrl
+
     // see if they have a preferred name and gameId
     var prefs = CurrentPlayer.loadPreferences()
-    $scope.playerAvatar = prefs.avatar
-    $scope.playerName = prefs.name
+    $scope.playerAvatar = prefs.avatar || 'player2'
     $scope.gameId = prefs.gameId || "global"
 
     // [ ] detect which game to join ("global")
@@ -53,39 +61,31 @@ angular.module('controllers').controller('IdentifyCtrl', function($scope: Identi
     // available avatars
     $scope.avatars = ['player2', 'player5', 'player3','player1', 'player4', 'player6']
     $scope.freeAvatars = ['player1','player2']
+
+    $scope.logout = function() {
+      Auth.logout($scope.user)
+    }
+
+    // TODO Move these into a service!
+    // an unlocking / avatar service or something?
     $scope.avatarIsFree = function (avatarName) {
       return ($scope.freeAvatars.indexOf(avatarName) != -1);
     }
 
     $scope.avatarIsAvailable = function (avatarName) {
-      return (players.isPaid || $scope.freeAvatars.indexOf(avatarName) != -1);
+      return (players.isPaid || $scope.avatarIsFree(avatarName));
     }
 
     $scope.avatarIsLocked = function (avatarName) {
       return ($scope.avatarIsAvailable(avatarName) != true);
     }
 
-    // [ ] Pick a name and avatar
-    // set a service with the currently selected player. the name and avatar, etc
-    // must be set by the time you get to game
-
-    // If game doesn't have a current player, then go back to the identify/matchmaking screen!
-
     $scope.join = function() {
-      if (!$scope.playerAvatar || !$scope.playerName) {
-        $scope.error = "Please select a valid name and an avatar"
-        return
-      }
-
-      if (Players.playerByName(players.all, $scope.playerName)) {
-        $scope.error = '"' + $scope.playerName + '" is already taken'
-        return
-      }
-
-      CurrentPlayer.savePreferences($scope.playerName, $scope.playerAvatar, $scope.gameId)
+      // Join can't be called until user.username is set
+      CurrentPlayer.savePreferences($scope.user.username, $scope.playerAvatar, $scope.gameId)
       $location
         .path("/game/" + $scope.gameId)
-        .search({avatar:$scope.playerAvatar, name:$scope.playerName})
+        .search({avatar:$scope.playerAvatar, name:$scope.user.username})
     }
 
     $scope.selectAvatar = function(name) {
