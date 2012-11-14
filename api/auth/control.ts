@@ -1,12 +1,18 @@
 import express = module('express')
-import express2 = module('def/express2')
 var OAuth = require('oauth').OAuth
 
 // TODO how do you just see if they are authorized? (if they have a session set or not!) Do you have their info?
 
-export var routes = <express2.ServerApplication> express.createServer()
+// is there even a non-session way to do this?
+// 1. have the javascript client make all the requests (proxy them?). Store the results of each step. IT handles the redirect?
 
-interface IOAuthOptions {
+export var routes = express()
+
+interface SessionRequest extends express.ServerRequest {
+  session:Session;
+}
+
+interface OAuthOptions {
   requestUrl: string;
   accessUrl: string;
   consumerKey: string;
@@ -17,15 +23,16 @@ interface IOAuthOptions {
 }
 
 // my session
-interface ISession {
-  oauth: ISessionOauth;
+interface Session {
+  oauth: SessionOauth;
 }
-interface ISessionOauth {
+
+interface SessionOauth {
   requestToken:string;
   requestSecret:string;
 }
 
-function consumer(options:IOAuthOptions) {
+function consumer(options:OAuthOptions) {
   return new OAuth(options.requestUrl, options.accessUrl, options.consumerKey, options.consumerSecret, options.version, options.callbackUrl, options.signatureMethod)
 }
 
@@ -68,10 +75,10 @@ console.log("WOOT", twitter)
 // so why not include the token and secret in the url?
 // then you'll have all 4 in the same url
 
-routes.get('/auth/twitter/login', function(req:express2.ServerRequest, res) {
+routes.get('/auth/twitter/login', function(req:SessionRequest, res) {
   twitter.getOAuthRequestToken(function(err, requestToken, requestSecret, results) {
     //console.log("REQUEST", err, requestToken, requestSecret, results)
-    (<ISession> req.session).oauth = {
+    req.session.oauth = {
       requestToken: requestToken,
       requestSecret: requestSecret,
     }
@@ -91,10 +98,9 @@ routes.get('/auth/twitter/login', function(req:express2.ServerRequest, res) {
 // you have to issue a callback.. blech
 // well, the callback could be a route that's supposed to be called with the information
 
-routes.get('/auth/twitter/callback', function(req:express2.ServerRequest, res) {
+routes.get('/auth/twitter/callback', function(req:SessionRequest, res) {
     var oauthToken = req.param('oauth_token')
     var oauthVerifier = req.param('oauth_verifier')
-    var session:ISessionOauth = req.session
     console.log("CALLBACK2", oauthToken, oauthVerifier, req.session)
     twitter.getOAuthAccessToken(req.session.oauth.requestToken, req.session.oauth.requestSecret, oauthVerifier, function(err, accessToken, accessSecret, profile) {
       console.log("ALL DONE", err, accessToken, accessSecret, profile)

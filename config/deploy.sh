@@ -14,7 +14,10 @@ echo "DEPLOY"
 # see Makefile
 
 # make sure we are built
-make install
+# don't bower install. we're already copying everything, it's slow, and there are no system-level dependencies
+# public/components/ gets rsynced
+#make install
+npm install
 make build
 
 # set up nginx

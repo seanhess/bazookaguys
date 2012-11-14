@@ -1,3 +1,2 @@
 .git
-public/components
 node_modules
