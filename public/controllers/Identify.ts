@@ -1,7 +1,6 @@
 ///<reference path="../def/angular.d.ts"/>
 
 ///<reference path="../services/Players"/>
-///<reference path="../services/CurrentPlayer"/>
 ///<reference path="../services/Auth"/>
 
 console.log("Register: IdentifyCtrl")
@@ -31,8 +30,13 @@ interface IdentifyScope extends ng.IScope {
   isPlayerAvatar(name:string): bool;
 }
 
+interface IdentifyRouteParams {
+  name?: string;
+  gameId?: string;
+}
+
 angular.module('controllers')
-.controller('IdentifyCtrl', function($scope: IdentifyScope, $location: ng.ILocationService, Players:IPlayerService, CurrentPlayer: any, AppVersion: string, Auth:IAuth) {
+.controller('IdentifyCtrl', function($scope: IdentifyScope, $location: ng.ILocationService, Players:IPlayerService, AppVersion: string, Auth:IAuth, $routeParams:IdentifyRouteParams) {
 
     // HACKY way to do the transition
     $scope.intro = "intro"
@@ -46,15 +50,15 @@ angular.module('controllers')
 
     $scope.version = AppVersion
 
-    $scope.user = Auth.getUser() // gets the currently logged in user
+    if ($routeParams.name)
+      $scope.user = Auth.fakeUser($routeParams.name)
+    else
+      $scope.user = Auth.getUser() // gets the currently logged in user
     $scope.twitterAuthUrl = Auth.twitterAuthUrl
 
-    // see if they have a preferred name and gameId
-    var prefs = CurrentPlayer.loadPreferences()
-    $scope.playerAvatar = prefs.avatar || 'player2'
-    $scope.gameId = prefs.gameId || "global"
+    $scope.playerAvatar = 'player2'
+    $scope.gameId = $routeParams.gameId || "global"
 
-    // [ ] detect which game to join ("global")
     var players = Players.connect($scope.gameId, "Identify")
     $scope.players = players
 
@@ -82,7 +86,6 @@ angular.module('controllers')
 
     $scope.join = function() {
       // Join can't be called until user.username is set
-      CurrentPlayer.savePreferences($scope.user.username, $scope.playerAvatar, $scope.gameId)
       $location
         .path("/game/" + $scope.gameId)
         .search({avatar:$scope.playerAvatar, name:$scope.user.username})

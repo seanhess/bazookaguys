@@ -9,6 +9,11 @@
   <title>Underwater Adventure Rocket Bazooka Guys II</title>
 </head>
 <body>
-  <iframe src="http://localhost:3000/" style="width: 960px; height: 660px"></iframe>
+  <iframe id="iframe" style="width: 960px; height: 660px"></iframe>
+
+  <script>
+    var iframe = document.getElementById("iframe")
+    iframe.src="http://localhost:3000/#/identify?gameId=12345&name=bobert"
+  </script>
 </body>
 </html>

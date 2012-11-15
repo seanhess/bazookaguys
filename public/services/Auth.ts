@@ -8,6 +8,7 @@ interface IAuth {
   //isLoggedIn:
   // needs things you can bind to.. no?
   getUser():IAuthUser;
+  fakeUser(name:string):IAuthUser;
   logout(user:IAuthUser);
   twitterAuthUrl:string;
 }
@@ -19,8 +20,13 @@ angular.module('services')
 
     return {
       getUser:getUser,
+      fakeUser:fakeUser,
       logout: logout,
       twitterAuthUrl: "/api/auth/twitter/login",
+    }
+
+    function fakeUser(name:string) {
+      return {username: name}
     }
 
     // "promise" oriented status fetcher

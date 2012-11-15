@@ -24,10 +24,26 @@
 <head>
   <meta charset="utf-8">
   <title>Underwater Adventure Rocket Bazooka Guys II</title>
+  <!-- Use this for production or something? -->
+  <!--<script src="//talkgadget.google.com/hangouts/_/api/hangout.js?v=1.2"></script>-->
   <script src="//hangoutsapi.talkgadget.google.com/hangouts/_/api/hangout.js?v=1.2"></script>
+
 </head>
 <body>
-  <iframe src="http://bazookaguys.tk/" style="width: 960px; height: 660px"></iframe>
+  <!-- src="http://bazookaguys.tk/" -->
+  <iframe id="iframe" style="width: 960px; height: 660px"></iframe>
+
+  <script>
+    // all google hangout code should be in this file. It's too hard to actually load things
+    gapi.hangout.onApiReady.add(function(eventObj) {
+      var iframe = document.getElementById("iframe")
+      console.log("PARTICIPANT", gapi.hangout.getLocalParticipant())
+      console.log("HENRY", gapi.hangout.getHangoutId())
+
+      // iframe.src="http://localhost:3000/#/identify?gameId=12345&name=bobert"
+      // iframe.src="http://bazookaguys.tk"
+    });
+  </script>
 </body>
 </html>
 ]]></Content>

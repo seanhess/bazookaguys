@@ -3,7 +3,6 @@
 
 ///<reference path="../services/Missiles"/>
 ///<reference path="../services/Players"/>
-///<reference path="../services/CurrentPlayer"/>
 ///<reference path="../services/Board"/>
 ///<reference path="../services/SoundEffects"/>
 ///<reference path="../services/AppVersion"/>
@@ -13,24 +12,13 @@
 ///<reference path="../directives/sprite.ts"/>
 
 angular.module('controllers')
-.controller('GameCtrl', function ($scope, Players:IPlayerService, Missiles:IMissileService, $routeParams:any, CurrentPlayer:ICurrentPlayerService, $location, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string) {
+.controller('GameCtrl', function ($scope, Players:IPlayerService, Missiles:IMissileService, $routeParams:any, $location, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string) {
 
   $scope.version = AppVersion
   $scope.gameId = $routeParams.gameId
 
   var name = $routeParams.name
   var avatar = $routeParams.avatar
-
-  // DEBUG: you can set ?debugPlayerName and just hit refresh over and over to reconnect
-  //if ($routeParams.debugPlayerName)
-    //CurrentPlayer.player = {name: $routeParams.debugPlayerName, avatar:"player" + Math.floor(Math.random()*6), state: "alive", x:0, y:0, wins:0, losses:0, version:AppVersion, direction:Board.DOWN}
-
-  // only play if you are identified
-  //if (!CurrentPlayer.player)  {
-    //console.log(CurrentPlayer)
-    //alert("BOO")
-    //return $location.path("/identify")
-  //}
 
   // not going to help! The person is still in the game!
   //if (AppVersion != Player.latestVersion()) {
