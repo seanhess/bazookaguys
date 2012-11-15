@@ -97,7 +97,7 @@ angular.module('controllers')
 
     $scope.invite = function() {
       $scope.gameId = Id.randomId()
-        $scope.invite
+      $location.search({gameId: $scope.gameId})
       $scope.inviteText = "Come play bazooka guys now!"
       $scope.inviteUrl = "http%3A%2F%2Fbazookaguys.com%2F%23%2Fidentify%3FgameId%3D" + $scope.gameId
       //$scope.inviteUrl = "https://twitter.com/intent/tweet?original_referer=http://bazookaguys.com&source=tweetbutton&text=Come play bazooka guys with me. Right now.&url=http%3A%2F%2Fbazookaguys.com%2F%23%2Fidentify%3FgameId%3DId}}"
