@@ -21,11 +21,11 @@ deploy: upload
 	# run the remote commands
 	ssh -t deploy@bazookaguys "cd ~/bazookaguys && config/deploy.sh"
 
-test-upload: 
-	rsync -rav -e ssh --delete --exclude-from config/exclude.txt . deploy@bazookaguys:~/test.bazookaguys
+#test-upload: 
+	#rsync -rav -e ssh --delete --exclude-from config/exclude.txt . deploy@bazookaguys:~/test.bazookaguys
 
-test-deploy: test-upload
-	ssh -t deploy@bazookaguys "cd ~/test.bazookaguys && config/deploy.sh"
+#test-deploy: test-upload
+	#ssh -t deploy@bazookaguys "cd ~/test.bazookaguys && config/deploy.sh"
 
 # doesn't work yet! it clobbers the angularjs parameter names!
 optimize: build

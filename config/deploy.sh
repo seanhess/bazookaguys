@@ -33,6 +33,6 @@ sudo stop bazookaguys
 sudo start bazookaguys
 
 # set up test server
-sudo cp config/test-upstart.conf /etc/init/test-bazookaguys.conf
-sudo stop test-bazookaguys
-sudo start test-bazookaguys
+#sudo cp config/test-upstart.conf /etc/init/test-bazookaguys.conf
+#sudo stop test-bazookaguys
+#sudo start test-bazookaguys
