@@ -254,7 +254,7 @@ html {
   color: #333;
   font-size: 15px;
   font-weight: bold;
-  padding: 6px 24px;
+  padding: 6px 8px;
   text-decoration: none;
 }
 #identify .upgrade-button:hover {

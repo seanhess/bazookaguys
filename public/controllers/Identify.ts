@@ -75,7 +75,7 @@ angular.module('controllers')
 
     // available avatars
     $scope.avatars = ['player2', 'player5', 'player3','player1', 'player4', 'player6']
-    $scope.freeAvatars = ['player1','player2']
+    $scope.freeAvatars = ['player2', 'player5', 'player3','player1', 'player4', 'player6']
 
     $scope.logout = function() {
       Auth.logout($scope.user)
