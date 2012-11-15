@@ -1,4 +1,5 @@
 ///<reference path="../def/angular.d.ts"/>
+///<reference path="../services/Id"/>
 
 interface IAuthUser {
   username:string;
@@ -14,7 +15,7 @@ interface IAuth {
 }
 
 angular.module('services')
-.factory('Auth', function($http:any, $location:ng.ILocationService):IAuth {
+.factory('Auth', function($http:any, $location:ng.ILocationService, Id:IdService):IAuth {
 
     // 1 // need to log in
 
@@ -26,7 +27,7 @@ angular.module('services')
     }
 
     function fakeUser(name:string) {
-      return {username: name}
+      return {username: Id.sanitize(name)}
     }
 
     // "promise" oriented status fetcher
@@ -36,7 +37,6 @@ angular.module('services')
       $http.get("/api/auth/user")
 
       .success(function(data:IAuthUser) {
-        console.log("SUCCESS!!!", data)
         user.username = data.username
       })
 

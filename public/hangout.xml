@@ -37,11 +37,18 @@
     // all google hangout code should be in this file. It's too hard to actually load things
     gapi.hangout.onApiReady.add(function(eventObj) {
       var iframe = document.getElementById("iframe")
-      console.log("PARTICIPANT", gapi.hangout.getLocalParticipant())
-      console.log("HENRY", gapi.hangout.getHangoutId())
 
-      // iframe.src="http://localhost:3000/#/identify?gameId=12345&name=bobert"
-      // iframe.src="http://bazookaguys.tk"
+      var person = gapi.hangout.getLocalParticipant().person
+      // person.id => "105412788272878650505"
+      // person.displayName => "Sean Hess"
+      // person.image.url => "..."
+
+      var hangoutId = gapi.hangout.getHangoutId() // really big hairy id
+      var name = person.displayName
+
+      console.log("gameId", hangoutId)
+      console.log("name", name)
+      iframe.src="http://bazookaguys.tk/#/identify?name="+name+"&gameId="+hangoutId
     });
   </script>
 </body>

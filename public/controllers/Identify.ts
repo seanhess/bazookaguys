@@ -2,6 +2,7 @@
 
 ///<reference path="../services/Players"/>
 ///<reference path="../services/Auth"/>
+///<reference path="../services/Id"/>
 
 console.log("Register: IdentifyCtrl")
 
@@ -36,7 +37,7 @@ interface IdentifyRouteParams {
 }
 
 angular.module('controllers')
-.controller('IdentifyCtrl', function($scope: IdentifyScope, $location: ng.ILocationService, Players:IPlayerService, AppVersion: string, Auth:IAuth, $routeParams:IdentifyRouteParams) {
+.controller('IdentifyCtrl', function($scope: IdentifyScope, $location: ng.ILocationService, Players:IPlayerService, AppVersion: string, Auth:IAuth, $routeParams:IdentifyRouteParams, Id:IdService) {
 
     // HACKY way to do the transition
     $scope.intro = "intro"
@@ -54,10 +55,13 @@ angular.module('controllers')
       $scope.user = Auth.fakeUser($routeParams.name)
     else
       $scope.user = Auth.getUser() // gets the currently logged in user
+
     $scope.twitterAuthUrl = Auth.twitterAuthUrl
 
     $scope.playerAvatar = 'player2'
-    $scope.gameId = $routeParams.gameId || "global"
+    $scope.gameId = Id.sanitize($routeParams.gameId || "global")
+    //console.log("GAME", $scope.gameId)
+    //console.log("PLAYER", $scope.user.username)
 
     var players = Players.connect($scope.gameId, "Identify")
     $scope.players = players
