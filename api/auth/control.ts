@@ -24,6 +24,7 @@ interface OAuthOptions {
 interface Session {
   oauth?: SessionOauth;
   user?: IUser;
+  gameId?:string;
 }
 
 // share this between both!
@@ -76,11 +77,16 @@ routes.post('/api/auth/logout', function(req:SessionRequest, res:express.ServerR
 })
 
 routes.get('/api/auth/twitter/login', function(req:SessionRequest, res:express.ServerResponse) {
+
+  // if they send a gameId, save that for the redirect later
+  var gameId = req.param('gameId')
+
   var oauth_callback = "http://"+req.header('host')+"/api/auth/twitter/callback"
   twitter.getOAuthRequestToken({oauth_callback:oauth_callback}, function(err, requestToken, requestSecret, results) {
     req.session.oauth = {}
     req.session.oauth.requestToken = requestToken
     req.session.oauth.requestSecret = requestSecret
+    req.session.gameId = gameId
     // I have all the info right here!
     res.redirect("https://api.twitter.com/oauth/authenticate?oauth_token=" + requestToken)
   })
@@ -95,7 +101,9 @@ routes.get('/api/auth/twitter/callback', function(req:SessionRequest, res:expres
     oauth.accessToken = accessToken
     oauth.accessSecret = accessSecret
     req.session.user = {username: profile.screen_name, twitterId: profile.user_id}
-    res.redirect("/")
+    var url = "/#/identify"
+    if (req.session.gameId) url += "?gameId=" + req.session.gameId
+    res.redirect(url)
   })
 })
 

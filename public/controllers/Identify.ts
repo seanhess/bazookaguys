@@ -17,7 +17,7 @@ interface IdentifyScope extends ng.IScope {
   freeAvatars:string [];
 
   user:IAuthUser;
-  twitterAuthUrl:string;
+  twitterAuthUrl(gameId:string):string;
   logout();
   showHangoutButton:bool;
 

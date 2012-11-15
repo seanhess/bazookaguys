@@ -11,7 +11,7 @@ interface IAuth {
   getUser():IAuthUser;
   fakeUser(name:string):IAuthUser;
   logout(user:IAuthUser);
-  twitterAuthUrl:string;
+  twitterAuthUrl(gameId:string):string;
 }
 
 angular.module('services')
@@ -23,7 +23,13 @@ angular.module('services')
       getUser:getUser,
       fakeUser:fakeUser,
       logout: logout,
-      twitterAuthUrl: "/api/auth/twitter/login",
+      twitterAuthUrl: twitterAuthUrl,
+    }
+
+    function twitterAuthUrl(gameId:string):string {
+      var url = "/api/auth/twitter/login"
+      if (gameId) url += "?gameId=" + gameId
+      return url
     }
 
     function fakeUser(name:string) {
