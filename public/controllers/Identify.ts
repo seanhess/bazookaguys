@@ -21,7 +21,6 @@ interface IdentifyScope extends ng.IScope {
   logout();
   showHangoutButton:bool;
 
-  playerName:string;
   playerAvatar:string;
 
   avatarIsFree(name:string): bool;

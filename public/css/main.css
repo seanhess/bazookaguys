@@ -297,11 +297,21 @@ html {
   padding-top: 10px;
   color: #fff;
 }
+#identify .menu .login .invite a button {
+  background: url("http://platform.twitter.com/widgets/images/btn.27237bab4db188ca749164efd38861b0.png") #f2f2f2 no-repeat left top;
+  background-position: -25px 0px;
+  padding: 2px;
+  padding-left: 30px;
+  margin: 10px;
+  margin-bottom: 20px;
+}
 #identify .menu .login a {
   color: #fff;
 }
 #identify .menu .join {
+  clear: both;
   margin: 10px;
+  margin-top: 30px;
   font-size: 40px;
   width: 180px;
 }
