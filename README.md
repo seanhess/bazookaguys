@@ -14,6 +14,12 @@ Compiling
     make
 
 
+
+
+* Don't respawn the winner. keep him in the same place
+* bug: the missile disapepars and he dies
+
+
 Needs
 -----
 * better explosion / death graphic
