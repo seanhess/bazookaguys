@@ -61,6 +61,9 @@ Not Yet
 Google Hangouts
 ---------------
 
+[ ] https (not sure if that's why it isn't letting me invite people?)
+[ ] publish it??
+
 https://developers.google.com/+/hangouts/writing
 
 Shared Application State: https://developers.google.com/+/hangouts/api/#gapi.hangout.data

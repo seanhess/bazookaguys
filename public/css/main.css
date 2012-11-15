@@ -214,6 +214,11 @@ html {
   margin: 10px;
   min-height: 600px;
 }
+#identify .hangout {
+  position: absolute;
+  bottom: 0px;
+  left: 120px;
+}
 #identify .upgrade-link {
   color: #fff;
   margin: 10px;

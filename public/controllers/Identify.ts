@@ -19,6 +19,7 @@ interface IdentifyScope extends ng.IScope {
   user:IAuthUser;
   twitterAuthUrl:string;
   logout();
+  isGoogleHangout:bool;
 
   playerName:string;
   playerAvatar:string;
@@ -55,6 +56,8 @@ angular.module('controllers')
       $scope.user = Auth.fakeUser($routeParams.name)
     else
       $scope.user = Auth.getUser() // gets the currently logged in user
+
+    $scope.isGoogleHangout = (!!$routeParams.name && !!$routeParams.gameId)
 
     $scope.twitterAuthUrl = Auth.twitterAuthUrl
 
