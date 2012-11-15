@@ -32,7 +32,7 @@
         <a ng-click="logout()">logout</a>
       </div>
       <div ng-show="user.username" class="invite">
-        <a target="_blank" class="btn" href="https://twitter.com/intent/tweet?original_referer=http://bazookaguys.com&source=tweetbutton&text=Come play bazooka guys with me. Right now.&url=http%3A%2F%2Fbazookaguys.com%2F%23%2Fidentify%3FgameId%3D{{gameId}}"><button>Invite Friends</button</a>
+        <a target="_blank" class="btn" ng-click="invite()" href="https://twitter.com/intent/tweet?original_referer=http://bazookaguys.com&source=tweetbutton&text={{inviteText}}&url={{inviteUrl}}"><button>Invite Friends</button</a>
         <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
         <!--<a id="bob" href="https://twitter.com/share" class="twitter-share-button" data-url="http://bazookaguys.com/" data-text="Come play Bazooka Guys with me!" data-size="large" data-related="bazookaguys" data-count="none">Tweetzz</a>-->
       </div>

@@ -37,7 +37,7 @@ Hit List
 * <script async></script> loading
 
 * (clean) use signals/events instead of $rootScope.broadcast
-* (clean) going back to the main page should clean up the game. 
+* (clean) going back to the main page should clean up the game. (music doesn't stop, doesn't remove you from the game)
 * (idea) switch game/matches when you switch matches?
 
 * DONE deploy to server with REAL domain (can heroku do it? Do you need hosting?)

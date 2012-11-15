@@ -21,13 +21,17 @@ interface IdentifyScope extends ng.IScope {
   logout();
   showHangoutButton:bool;
 
+  inviteUrl:string;
+  inviteText:string;
+
   playerAvatar:string;
 
   avatarIsFree(name:string): bool;
   avatarIsAvailable(name:string): bool;
   avatarIsLocked(name:string): bool;
-  join(): void;
-  selectAvatar(name: string): void;
+  join();
+  invite();
+  selectAvatar(name: string);
   isPlayerAvatar(name:string): bool;
 }
 
@@ -89,6 +93,15 @@ angular.module('controllers')
 
     $scope.avatarIsLocked = function (avatarName) {
       return ($scope.avatarIsAvailable(avatarName) != true);
+    }
+
+    $scope.invite = function() {
+      $scope.gameId = Id.randomId()
+        $scope.invite
+      $scope.inviteText = "Come play bazooka guys now!"
+      $scope.inviteUrl = "http%3A%2F%2Fbazookaguys.com%2F%23%2Fidentify%3FgameId%3D" + $scope.gameId
+      //$scope.inviteUrl = "https://twitter.com/intent/tweet?original_referer=http://bazookaguys.com&source=tweetbutton&text=Come play bazooka guys with me. Right now.&url=http%3A%2F%2Fbazookaguys.com%2F%23%2Fidentify%3FgameId%3DId}}"
+      // then, the click resolves itself
     }
 
     $scope.join = function() {
