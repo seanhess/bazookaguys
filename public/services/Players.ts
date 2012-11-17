@@ -38,10 +38,10 @@ interface IPlayerState {
   gameRef:fire.IRef;
   playersRef:fire.IRef;
 
-  boundOnJoin?:fire.IRefCB;
-  boundOnUpdate?:fire.IRefCB;
-  boundOnQuit?:fire.IRefCB;
-  boundOnWinner?:fire.IRefCB;
+  boundOnJoin?:fire.ISnapshotCB;
+  boundOnUpdate?:fire.ISnapshotCB;
+  boundOnQuit?:fire.ISnapshotCB;
+  boundOnWinner?:fire.ISnapshotCB;
 }
 
 // only methods

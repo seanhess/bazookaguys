@@ -5,8 +5,9 @@
 declare var Firebase;
 
 interface IFirebaseService {
+  ref(url:string):fire.IRef;
   game(gameId:string):fire.IRef;
-  apply(cb:fire.IValueCB):fire.IRefCB;
+  apply(cb:fire.IValueCB):fire.ISnapshotCB;
   update(ref:fire.IRef, obj:any);
 }
 
@@ -14,15 +15,18 @@ module fire {
 
   export interface IRef {
     child(name:string);
-    val();
-    on(event:string, cb:IRefCB);
-    off(event:string, cb:IRefCB);
+    on(event:string, cb:ISnapshotCB);
+    off(event:string, cb:ISnapshotCB);
     set(val:any);
     removeOnDisconnect();
   }
 
-  export interface IRefCB {
-    (ref:IRef);
+  export interface ISnapshot {
+    val();
+  }
+
+  export interface ISnapshotCB {
+    (ref:ISnapshot);
   }
 
   export interface IValueCB {
@@ -47,12 +51,16 @@ module fire {
     ) { }
 
     game(gameId:string):IRef {
-      var ref = new Firebase("https://seanhess.firebaseio.com/uarbg2/" + gameId)
+      return this.ref("/uarbg2/" + gameId)
+    }
+
+    ref(url:string):IRef {
+      var ref = new Firebase("https://seanhess.firebaseio.com" + url)
       return ref
     }
 
-    apply(f:IValueCB):IRefCB {
-      return (ref:IRef) => {
+    apply(f:IValueCB):ISnapshotCB {
+      return (ref:ISnapshot) => {
         if ((<any>this.$rootScope).$$phase)
           return f(ref.val())
         this.$rootScope.$apply(function() {

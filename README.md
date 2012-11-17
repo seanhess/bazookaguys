@@ -54,6 +54,11 @@ Hit List
 * DONE (bug) rounds / winning
 * DONE (bug) closed-lid players
 
+CLEANUP
+-------
+
+* When you donate, we should keep track in your session / user profile
+
 Next Features?
 -------------
 * 3... 2... 1... Fight!
