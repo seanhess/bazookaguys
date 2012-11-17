@@ -30,6 +30,10 @@ app.use(connect.session({secret: 'funky monkey', key: 'blah', store:new connect.
 
 app.use(auth.routes)
 
+app.get('/paid', function(req, res) {
+    res.redirect('/#/paid')
+})
+
 app.listen(PORT, () => {
   console.log("RUNNING " + PORT)
 })

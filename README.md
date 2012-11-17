@@ -20,6 +20,11 @@ Compiling
 * bug: the missile disapepars and he dies
 
 
+Ideas
+-----
+
+* Humble Bundle Style Donation Statistics and leaderboards
+
 Needs
 -----
 * better explosion / death graphic
