@@ -1,25 +1,25 @@
 ///<reference path="../def/angular.d.ts"/>
-///<reference path="../services/SharedObject.ts"/>
+///<reference path="../services/Shared.ts"/>
 ///<reference path="../services/FB.ts"/>
 ///<reference path="../services/Id.ts"/>
 
 angular.module('controllers')
-.controller('TestCtrl', function($scope, SharedObject:SharedObjectService, FB:IFirebaseService, Id:IdService) {
+.controller('TestCtrl', function($scope, Shared:shared.Service, FB:IFirebaseService, Id:IdService) {
   $scope.message = "hello"
 
   //var testRef = FB.ref("/test/fake2")
   //var so = SharedObject.object(testRef)
   //$scope.person = so.value
 
-  var sa = SharedObject.bindArray(FB.ref("/test/people"))
+  var sa = Shared.bindArray(FB.ref("/test/people"))
   $scope.people = sa.value
 
   $scope.addPerson = function() {
-    SharedObject.add(sa.ref, {id:Id.randomId()})
+    Shared.add(sa.ref, {id:Id.randomId()})
   }
 
   $scope.remove = function(person) {
-    SharedObject.remove(sa.ref, person)
+    Shared.remove(sa.ref, person)
   }
 
   $scope.select = function(person) {
@@ -27,7 +27,7 @@ angular.module('controllers')
   }
 
   $scope.save = function(person) {
-    SharedObject.setChild(sa.ref, person)
+    Shared.setChild(sa.ref, person)
   }
 
   // Well, when it comes to the array, like the players, I just want them to all update magically.

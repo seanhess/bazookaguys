@@ -4,40 +4,47 @@
 ///<reference path="./FB"/>
 ///<reference path="../def/underscore.d.ts"/>
 
-interface SharedObject {
-  ref: fire.IRef;
-  value:any;
-  updating?:bool;
-  onValue?(snap:fire.ISnapshot);
+
+module shared {
+
+  export interface IObject {
+    ref: fire.IRef;
+    value:any;
+    updating?:bool;
+    onValue?(snap:fire.ISnapshot);
+  }
+
+  export interface IArrayItem {
+    id:string;
+  }
+
+  export interface IArray extends IObject {
+    value:IArrayItem[];
+    onAdded?(snap:fire.ISnapshot);
+    onChanged?(snap:fire.ISnapshot);
+    onRemoved?(snap:fire.ISnapshot);
+  }
+
+  export interface Service {
+    bindObject(ref:fire.IRef):IObject;
+    unbindObject(so:IObject);
+    set(ref:fire.IRef, value:any);
+    update(ref:fire.IRef, value:any, property:string);
+
+    bindArray(ref:fire.IRef):IArray;
+    unbindArray(so:IArray);
+
+    add(arrayRef:fire.IRef, item:IArrayItem);
+    remove(arrayRef:fire.IRef, item:IArrayItem);
+    setChild(arrayRef:fire.IRef, item:IArrayItem);
+  }
+
 }
 
-interface SharedArrayItem {
-  id:string;
-}
 
-interface SharedArray extends SharedObject {
-  value:SharedArrayItem[];
-  onAdded?(snap:fire.ISnapshot);
-  onChanged?(snap:fire.ISnapshot);
-  onRemoved?(snap:fire.ISnapshot);
-}
-
-interface SharedObjectService {
-  bindObject(ref:fire.IRef):SharedObject;
-  unbindObject(so:SharedObject);
-  set(ref:fire.IRef, value:any);
-  update(ref:fire.IRef, value:any, property:string);
-
-  bindArray(ref:fire.IRef):SharedArray;
-  unbindArray(so:SharedArray);
-
-  add(arrayRef:fire.IRef, item:SharedArrayItem);
-  remove(arrayRef:fire.IRef, item:SharedArrayItem);
-  setChild(arrayRef:fire.IRef, item:SharedArrayItem);
-}
 
 angular.module('services')
-.factory('SharedObject', function($rootScope:ng.IScope, FB:IFirebaseService):SharedObjectService {
+.factory('Shared', function($rootScope:ng.IScope, FB:IFirebaseService):shared.Service {
 
   // whether we are currently responsible for an update and should ignore any changes to the remote object
   var updating = false
@@ -56,8 +63,8 @@ angular.module('services')
   }
 
   // these connect them up
-  function bindObject(ref:fire.IRef):SharedObject {
-    var so:SharedObject = {ref: ref, value:{}}
+  function bindObject(ref:fire.IRef):shared.IObject {
+    var so:shared.IObject = {ref: ref, value:{}}
 
     so.onValue = makeUpdate(function(value) {
       if (!value) return objectEmpty(so.value)
@@ -69,7 +76,7 @@ angular.module('services')
     return so
   }
 
-  function unbindObject(so:SharedObject) {
+  function unbindObject(so:shared.IObject) {
     so.ref.off('value', so.onValue)
   }
 
@@ -120,8 +127,8 @@ angular.module('services')
 
 
   // Yay, now time for a shared array!
-  function bindArray(ref:fire.IRef):SharedArray {
-    var sa:SharedArray = {ref: ref, value:[]}
+  function bindArray(ref:fire.IRef):shared.IArray {
+    var sa:shared.IArray = {ref: ref, value:[]}
 
     sa.onAdded = makeUpdate(function(value) {
       sa.value.push(value)
@@ -145,22 +152,22 @@ angular.module('services')
     return sa
   }
 
-  function unbindArray(sa:SharedArray) {
+  function unbindArray(sa:shared.IArray) {
     sa.ref.off('child_added', sa.onAdded)
     sa.ref.off('child_changed', sa.onChanged)
     sa.ref.off('child_removed', sa.onRemoved)
   }
 
-  function add(arrayRef:fire.IRef, item:SharedArrayItem) {
+  function add(arrayRef:fire.IRef, item:shared.IArrayItem) {
     setChild(arrayRef, item)
   }
 
-  function remove(arrayRef:fire.IRef, item:SharedArrayItem) {
+  function remove(arrayRef:fire.IRef, item:shared.IArrayItem) {
     arrayRef.child(item.id).remove()
   }
 
   // like set, call this if you already know you've updated locally
-  function setChild(arrayRef:fire.IRef, item:SharedArrayItem) {
+  function setChild(arrayRef:fire.IRef, item:shared.IArrayItem) {
     set(arrayRef.child(item.id), item, false)
   }
 
@@ -180,8 +187,8 @@ angular.module('services')
 
 
 
-  function byId(id:string):(item:SharedArrayItem) => bool {
-    return function(item:SharedArrayItem) {
+  function byId(id:string):(item:shared.IArrayItem) => bool {
+    return function(item:shared.IArrayItem) {
       return (item.id == id)
     }
   }
