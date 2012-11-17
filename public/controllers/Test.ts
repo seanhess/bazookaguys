@@ -15,7 +15,7 @@ angular.module('controllers')
   $scope.people = sa.value
 
   $scope.addPerson = function() {
-    Shared.add(sa.ref, {id:Id.randomId()})
+    Shared.push(sa.ref, {id:Id.randomId()})
   }
 
   $scope.remove = function(person) {
@@ -28,15 +28,6 @@ angular.module('controllers')
 
   $scope.save = function(person) {
     Shared.setChild(sa.ref, person)
+    //Shared.updateChild(sa.ref, person, "name")
   }
-
-  // Well, when it comes to the array, like the players, I just want them to all update magically.
-  // without me having to rebind to any of them.
-  // yeah.
-
-  // but I DO want to be able to UPDATE them
-  // you need a standard id system. So you can just say: shared array, update this object
-  // and it will do so based on ITS saved ref
-  // I don't need to access the individual refs
-
 })

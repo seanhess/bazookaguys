@@ -1,5 +1,7 @@
 // This makes an object that is matched to the shared representation of it
 
+// TODO conflicts? updates? right now we save the whole object over and over. probably a lot going over the wire
+
 ///<reference path="../def/angular.d.ts"/>
 ///<reference path="./FB"/>
 ///<reference path="../def/underscore.d.ts"/>
@@ -20,7 +22,7 @@ module shared {
 
   export interface IArray extends IObject {
     value:IArrayItem[];
-    onAdded?(snap:fire.ISnapshot);
+    onPushed?(snap:fire.ISnapshot);
     onChanged?(snap:fire.ISnapshot);
     onRemoved?(snap:fire.ISnapshot);
   }
@@ -34,9 +36,10 @@ module shared {
     bindArray(ref:fire.IRef):IArray;
     unbindArray(so:IArray);
 
-    add(arrayRef:fire.IRef, item:IArrayItem);
+    push(arrayRef:fire.IRef, item:IArrayItem);
     remove(arrayRef:fire.IRef, item:IArrayItem);
     setChild(arrayRef:fire.IRef, item:IArrayItem);
+    updateChild(arrayRef:fire.IRef, item:IArrayItem, property:string);
   }
 
 }
@@ -57,9 +60,10 @@ angular.module('services')
 
     bindArray:bindArray,
     unbindArray:unbindArray,
-    add: add,
+    push: push,
     remove: remove,
     setChild: setChild,
+    updateChild: updateChild,
   }
 
   // these connect them up
@@ -97,14 +101,16 @@ angular.module('services')
   }
 
   function update(ref:fire.IRef, object:any, property:string) {
-    ref.child(property).set(object[property])
+    ignoreServer(function() {
+      ref.child(property).set(object[property])
+    })
   }
 
 
   function makeUpdate(f:fire.IValueCB):fire.ISnapshotCB {
     return function(snap:fire.ISnapshot) {
       if (updating) return
-
+      //console.log("UPDATING", JSON.stringify(snap.val()))
       if ((<any>$rootScope).$$phase)
         return f(snap.val())
 
@@ -130,7 +136,7 @@ angular.module('services')
   function bindArray(ref:fire.IRef):shared.IArray {
     var sa:shared.IArray = {ref: ref, value:[]}
 
-    sa.onAdded = makeUpdate(function(value) {
+    sa.onPushed = makeUpdate(function(value) {
       sa.value.push(value)
     })
 
@@ -145,7 +151,7 @@ angular.module('services')
       sa.value.splice(index, 1)
     })
 
-    ref.on('child_added', sa.onAdded)
+    ref.on('child_added', sa.onPushed)
     ref.on('child_changed', sa.onChanged)
     ref.on('child_removed', sa.onRemoved)
 
@@ -153,13 +159,13 @@ angular.module('services')
   }
 
   function unbindArray(sa:shared.IArray) {
-    sa.ref.off('child_added', sa.onAdded)
+    sa.ref.off('child_added', sa.onPushed)
     sa.ref.off('child_changed', sa.onChanged)
     sa.ref.off('child_removed', sa.onRemoved)
   }
 
-  function add(arrayRef:fire.IRef, item:shared.IArrayItem) {
-    setChild(arrayRef, item)
+  function push(arrayRef:fire.IRef, item:shared.IArrayItem) {
+    set(arrayRef.child(item.id), item, false)
   }
 
   function remove(arrayRef:fire.IRef, item:shared.IArrayItem) {
@@ -168,10 +174,13 @@ angular.module('services')
 
   // like set, call this if you already know you've updated locally
   function setChild(arrayRef:fire.IRef, item:shared.IArrayItem) {
-    set(arrayRef.child(item.id), item, false)
+    set(arrayRef.child(item.id), item)
   }
 
-
+  function updateChild(arrayRef:fire.IRef, item:shared.IArrayItem, property:string) {
+    update(arrayRef.child(item.id), item, property)
+    //set(arrayRef.child(item.id), {})
+  }
 
 
 
