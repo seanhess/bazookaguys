@@ -1,7 +1,20 @@
 <h1>Message!: {{message}}</h1>
 <div style="background-color:#FFF">
-  <div>{{object}}</div>
-  <div><input ng-model="object.name.first" placeholder="name"></div>
-  <div><input ng-model="object.age" placeholder="20"></div>
-  <div><button ng-click="save()">Save</button></div>
+  <pre>{{person}}</pre>
+  <div><input ng-model="person.name.first" placeholder="name"></div>
+  <div><input ng-model="person.age" placeholder="20"></div>
+  <div><button ng-click="save(person)">Save</button></div>
+
+  <hr />
+
+  <button ng-click="addPerson()">Add Person</button>
+
+  <pre>{{people}}</pre>
+
+  <div ng-repeat="person in people">
+    <button ng-click="select(person)">select</button>
+    <button ng-click="remove(person)">remove</button>
+    <code>{{person}}</code>
+  </div>
+
 </div>
