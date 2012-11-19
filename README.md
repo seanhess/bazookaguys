@@ -37,6 +37,7 @@ Hit List
 * Rocket animation 
 * (bug) you can kill yourself?
 * (bug) disconnect from missiles too (in game)
+* (bug) player animations not propogating to other computers!??!?
 * Collide with other players
 * Two missiles colliding should explode
 * <script async></script> loading

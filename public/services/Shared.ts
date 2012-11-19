@@ -4,7 +4,6 @@
 // TODO not based on name. Can you find out what the ref name is some other way? set a secret refname, not based on a property on the object? Like, what if I wanted more than one missile per player?
 // TODO events when items are pushed and removed (and updated?)
 
-
 ///<reference path="../def/angular.d.ts"/>
 ///<reference path="./FB"/>
 ///<reference path="../def/underscore.d.ts"/>
@@ -206,7 +205,6 @@ angular.module('services')
   function push(arrayRef:fire.IRef, item:shared.IArrayItem) {
     var ref = arrayRef.child(item.name)
     ref.removeOnDisconnect()
-    console.log("WAHOO", item)
     SharedObject.set(ref, item, false)
   }
 

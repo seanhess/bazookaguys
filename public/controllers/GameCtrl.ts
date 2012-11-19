@@ -72,8 +72,6 @@ angular.module('controllers')
 
     var current = Players.current(players)
 
-    console.log(current)
-
     // you can do ANYTHING if you are dead, or if the game is currently OVER
     if (!Players.isAlive(current)) return
     if (players.winner) return
@@ -84,29 +82,7 @@ angular.module('controllers')
     var direction = keyCodeToDirection(e.keyCode)
     if (!direction) return
 
-    var position = Board.move(current, direction)
-    if (!position) return
-      
-    // the x and y change
-    current.x = position.x
-    current.y = position.y
-    current.direction = position.direction
-    Players.move(players, current);
-
-      // WILL I HIT ANY OTHER PLAYERS?
-
-      //var collision = false;
-      //Players.alivePlayers(players.all).forEach(function(p:IPlayer){
-        //if (p.name != players.current.name && p.state != "dead") {
-          //if (location.axis == "x") {
-            //if (p.x == location.location && p.y == players.current.y) collision = true;
-          //}
-          //if (location.axis == "y") {
-            //if (p.y == location.location && p.x == players.current.x) collision = true;
-          //}
-        //}
-      //});
-      //if (!collision) {
+    Players.move(players, current, direction)
   }
 
   $scope.$on('$destroy', function() {

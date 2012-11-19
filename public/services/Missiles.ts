@@ -90,7 +90,6 @@ angular.module('services')
     }
 
     function moveMissile(state:IMissileState, players:IPlayerState, missile:IMissile) {
-      console.log("MOVE MISSILE", missile.name, missile.x, missile.y)
       var position = Board.move(missile, missile.direction)
       if (!position) return explodeMissile(state, missile)
 

@@ -55,7 +55,7 @@ interface IPlayerService {
   disconnect(state:IPlayerState);
   join(state:IPlayerState, name:string, avatar:string);
   killPlayer(state:IPlayerState, player:IPlayer, killerName:string);
-  move(state:IPlayerState, player:IPlayer);
+  move(state:IPlayerState, player:IPlayer, direction:string);
 
   current(state:IPlayerState):IPlayer;
 
@@ -226,7 +226,18 @@ angular.module('services')
     }
   }
 
-  function move(state:IPlayerState, player:IPlayer) {
+  function move(state:IPlayerState, player:IPlayer, direction:string) {
+
+    var position = Board.move(player, direction)
+    if (!position) return
+      
+    var hit = Board.findHit(alivePlayers(state.all), position)
+    if (hit) return
+
+    player.x = position.x
+    player.y = position.y
+    player.direction = position.direction
+
     SharedArray.update(state.playersRef, player, ["x","y", "direction"])
   }
   
