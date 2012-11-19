@@ -6,9 +6,9 @@
 ///<reference path="./FB"/>
 ///<reference path="../def/underscore.d.ts"/>
 
+// I don't like that I have to use "name", but whatever
 
 module shared {
-
   export interface IObject {
     ref: fire.IRef;
     value:any;
@@ -17,7 +17,7 @@ module shared {
   }
 
   export interface IArrayItem {
-    id:string;
+    name:string;
   }
 
   export interface IArray extends IObject {
@@ -27,47 +27,47 @@ module shared {
     onRemoved?(snap:fire.ISnapshot);
   }
 
-  export interface Service {
-    bindObject(ref:fire.IRef):IObject;
-    unbindObject(so:IObject);
-    set(ref:fire.IRef, value:any);
-    update(ref:fire.IRef, value:any, property:string);
+  export interface ObjectService {
+    bind(ref:fire.IRef):IObject;
+    unbind(so:IObject);
+    set(ref:fire.IRef, value:any, shouldIgnoreServer?:bool);
+    update(ref:fire.IRef, object:any, properties:string[]);
+    makeUpdate(f:fire.IValueCB):fire.ISnapshotCB;
 
-    bindArray(ref:fire.IRef):IArray;
-    unbindArray(so:IArray);
-
-    push(arrayRef:fire.IRef, item:IArrayItem);
-    remove(arrayRef:fire.IRef, item:IArrayItem);
-    setChild(arrayRef:fire.IRef, item:IArrayItem);
-    updateChild(arrayRef:fire.IRef, item:IArrayItem, property:string);
+    objectEmpty(obj:any);
+    objectReplace(dest:any, source:any);
+    objectExtend(dest:any, source:any);
   }
 
+  export interface ArrayService {
+    bind(ref:fire.IRef):IArray;
+    unbind(so:IArray);
+    push(arrayRef:fire.IRef, item:IArrayItem);
+    remove(arrayRef:fire.IRef, item:IArrayItem);
+    set(arrayRef:fire.IRef, item:IArrayItem);
+    update(arrayRef:fire.IRef, object:any, properties:string[]);
+  }
 }
 
-
-
 angular.module('services')
-.factory('Shared', function($rootScope:ng.IScope, FB:IFirebaseService):shared.Service {
+.factory('SharedObject', function($rootScope:ng.IScope, FB:IFirebaseService):shared.ObjectService {
 
   // whether we are currently responsible for an update and should ignore any changes to the remote object
   var updating = false
 
   return {
-    bindObject:bindObject,
-    unbindObject:unbindObject,
+    bind:bind,
+    unbind:unbind,
     update:update,
     set:set,
-
-    bindArray:bindArray,
-    unbindArray:unbindArray,
-    push: push,
-    remove: remove,
-    setChild: setChild,
-    updateChild: updateChild,
+    makeUpdate:makeUpdate,
+    objectEmpty:objectEmpty,
+    objectReplace:objectReplace,
+    objectExtend:objectExtend,
   }
 
-  // these connect them up
-  function bindObject(ref:fire.IRef):shared.IObject {
+
+  function bind(ref:fire.IRef):shared.IObject {
     var so:shared.IObject = {ref: ref, value:{}}
 
     so.onValue = makeUpdate(function(value) {
@@ -80,12 +80,18 @@ angular.module('services')
     return so
   }
 
-  function unbindObject(so:shared.IObject) {
+  function unbind(so:shared.IObject) {
     so.ref.off('value', so.onValue)
   }
 
+
   // only work on shared objects! not shared arrays!
+  // or ALWAYS have them be updates?
+  // under what conditions would you want to REPLACE them?
+  // um... never?
   function set(ref:fire.IRef, object:any, shouldIgnoreServer?:bool = true) {
+
+    // need to clean up the object. Make sure all keys are defined, and there are no $$hashKeys and the like
     var updates = {}
     Object.keys(object).forEach(function(key) {
       if (object[key] && !key.match(/^\$/))
@@ -100,9 +106,10 @@ angular.module('services')
     })
   }
 
-  function update(ref:fire.IRef, object:any, property:string) {
+  function update(ref:fire.IRef, object:any, properties:string[]) {
+    var updates = _.pick.apply(null, [object].concat(properties))
     ignoreServer(function() {
-      ref.child(property).set(object[property])
+      ref.update(updates)
     })
   }
 
@@ -110,7 +117,7 @@ angular.module('services')
   function makeUpdate(f:fire.IValueCB):fire.ISnapshotCB {
     return function(snap:fire.ISnapshot) {
       if (updating) return
-      //console.log("UPDATING", JSON.stringify(snap.val()))
+      console.log("UPDATING", JSON.stringify(snap.val()))
       if ((<any>$rootScope).$$phase)
         return f(snap.val())
 
@@ -131,85 +138,6 @@ angular.module('services')
 
 
 
-
-  // Yay, now time for a shared array!
-  function bindArray(ref:fire.IRef):shared.IArray {
-    var sa:shared.IArray = {ref: ref, value:[]}
-
-    sa.onPushed = makeUpdate(function(value) {
-      sa.value.push(value)
-    })
-
-    sa.onChanged = makeUpdate(function(value) {
-      var obj = _.find(sa.value, byId(value.id))
-      objectReplace(obj, value)
-    })
-
-    sa.onRemoved = makeUpdate(function(value) {
-      var index = indexOf(sa.value, byId(value.id))
-      if (index < 0) return
-      sa.value.splice(index, 1)
-    })
-
-    ref.on('child_added', sa.onPushed)
-    ref.on('child_changed', sa.onChanged)
-    ref.on('child_removed', sa.onRemoved)
-
-    return sa
-  }
-
-  function unbindArray(sa:shared.IArray) {
-    sa.ref.off('child_added', sa.onPushed)
-    sa.ref.off('child_changed', sa.onChanged)
-    sa.ref.off('child_removed', sa.onRemoved)
-  }
-
-  function push(arrayRef:fire.IRef, item:shared.IArrayItem) {
-    set(arrayRef.child(item.id), item, false)
-  }
-
-  function remove(arrayRef:fire.IRef, item:shared.IArrayItem) {
-    arrayRef.child(item.id).remove()
-  }
-
-  // like set, call this if you already know you've updated locally
-  function setChild(arrayRef:fire.IRef, item:shared.IArrayItem) {
-    set(arrayRef.child(item.id), item)
-  }
-
-  function updateChild(arrayRef:fire.IRef, item:shared.IArrayItem, property:string) {
-    update(arrayRef.child(item.id), item, property)
-    //set(arrayRef.child(item.id), {})
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  function byId(id:string):(item:shared.IArrayItem) => bool {
-    return function(item:shared.IArrayItem) {
-      return (item.id == id)
-    }
-  }
-
-
-  function indexOf(array:any[], iterator:(item:any) => bool):number {
-    for (var i = 0; i < array.length; i++) {
-      if (iterator(array[i])) return i
-    }
-    return -1
-  }
-
   function objectEmpty(obj:any) {
     Object.keys(obj).forEach(function(key) {
       delete obj[key]
@@ -226,6 +154,99 @@ angular.module('services')
       dest[key] = source[key]
     })
   }
+})
+
+
+
+.factory('SharedArray', function($rootScope:ng.IScope, FB:IFirebaseService, SharedObject:shared.ObjectService):shared.ArrayService {
+
+  return {
+    bind:bind,
+    unbind:unbind,
+    push: push,
+    remove: remove,
+    set: set,
+    update: update,
+  }
+
+  function bind(ref:fire.IRef):shared.IArray {
+    var sa:shared.IArray = {ref: ref, value:[]}
+
+    sa.onPushed = SharedObject.makeUpdate(function(value) {
+      sa.value.push(value)
+    })
+
+    sa.onChanged = SharedObject.makeUpdate(function(value) {
+      var obj = _.find(sa.value, byName(value.name))
+      SharedObject.objectReplace(obj, value)
+    })
+
+    sa.onRemoved = SharedObject.makeUpdate(function(value) {
+      var index = indexOf(sa.value, byName(value.name))
+      if (index < 0) return
+      sa.value.splice(index, 1)
+    })
+
+    ref.on('child_added', sa.onPushed)
+    ref.on('child_changed', sa.onChanged)
+    ref.on('child_removed', sa.onRemoved)
+
+    return sa
+  }
+
+  function unbind(sa:shared.IArray) {
+    sa.ref.off('child_added', sa.onPushed)
+    sa.ref.off('child_changed', sa.onChanged)
+    sa.ref.off('child_removed', sa.onRemoved)
+  }
+
+  function push(arrayRef:fire.IRef, item:shared.IArrayItem) {
+    var ref = arrayRef.child(item.name)
+    ref.removeOnDisconnect()
+    SharedObject.set(ref, item, false)
+  }
+
+  function remove(arrayRef:fire.IRef, item:shared.IArrayItem) {
+    arrayRef.child(item.name).remove()
+  }
+
+  // like set, call this if you already know you've updated locally
+  function set(arrayRef:fire.IRef, item:shared.IArrayItem) {
+    SharedObject.set(arrayRef.child(item.name), item)
+  }
+
+  // you lose type checking on the property list, but you do that anyway
+  // even with an object, because there is no support for generics
+  function update(arrayRef:fire.IRef, item:shared.IArrayItem, properties:string[]) {
+
+    // NOTE: if name doesn't exit, it will create a new node with no .name!
+
+    SharedObject.update(arrayRef.child(item.name), item, properties)
+    //set(arrayRef.child(item.name), {})
+  }
+
+
+
+
+
+
+
+
+
+  function byName(name:string):(item:shared.IArrayItem) => bool {
+    return function(item:shared.IArrayItem) {
+      return (item.name == name)
+    }
+  }
+
+
+  function indexOf(array:any[], iterator:(item:any) => bool):number {
+    for (var i = 0; i < array.length; i++) {
+      if (iterator(array[i])) return i
+    }
+    return -1
+  }
+
 })
 
 

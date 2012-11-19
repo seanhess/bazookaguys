@@ -18,6 +18,7 @@ module fire {
     on(event:string, cb:ISnapshotCB);
     off(event:string, cb:ISnapshotCB);
     set(val:any);
+    update(val:any);
     removeOnDisconnect();
   }
 

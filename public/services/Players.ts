@@ -6,8 +6,9 @@
 ///<reference path="./FB"/>
 ///<reference path="./AppVersion"/>
 ///<reference path="./Board"/>
+///<reference path="./Shared"/>
 
-interface IPlayer {
+interface IPlayer extends shared.IArrayItem {
   x:number;
   y:number;
   direction:string;
@@ -37,10 +38,7 @@ interface IPlayerState {
   myname:string;
   gameRef:fire.IRef;
   playersRef:fire.IRef;
-
-  boundOnJoin?:fire.ISnapshotCB;
-  boundOnUpdate?:fire.ISnapshotCB;
-  boundOnQuit?:fire.ISnapshotCB;
+  sharedPlayers:shared.IArray;
   boundOnWinner?:fire.ISnapshotCB;
 }
 
@@ -58,13 +56,15 @@ interface IPlayerService {
   killPlayer(state:IPlayerState, player:IPlayer, killerName:string);
   move(state:IPlayerState, player:IPlayer);
 
+  current(state:IPlayerState):IPlayer;
+
   // TODO no reset, make a NEW game
   resetGame(state:IPlayerState);
 }
 
 angular.module('services')
 
-.factory('Players', function($rootScope:ng.IScope, FB:IFirebaseService, Board:IBoard, AppVersion:string):IPlayerService {
+.factory('Players', function($rootScope:ng.IScope, FB:IFirebaseService, Board:IBoard, AppVersion:string, SharedArray:shared.ArrayService):IPlayerService {
   // the big cheese. Does the deed
   // you can make fancy bindings here, no?
 
@@ -80,6 +80,7 @@ angular.module('services')
     move: move,
     resetGame: resetGame,
     disconnect: disconnect,
+    current: currentPlayer,
   }
 
   function connect(gameId:string, id:string):IPlayerState {
@@ -87,27 +88,22 @@ angular.module('services')
     var gameRef = FB.game(gameId)
     var playersRef = gameRef.child('players')
 
+    var sharedPlayers = SharedArray.bind(playersRef)
+
     var state:IPlayerState = {
       myname:null,
       gameRef:gameRef,
       playersRef:playersRef,
 
       current: null,
+      sharedPlayers: sharedPlayers,
       winner: null,
       isPaid: isPaid(),
-      all: [],
+      all: <IPlayer[]> sharedPlayers.value,
       id: id,
     }
 
-    state.boundOnJoin = FB.apply((p) => onJoin(state,p))
-    state.boundOnUpdate = FB.apply((p) => onUpdate(state,p))
-    state.boundOnQuit = FB.apply((p) => onQuit(state,p))
     state.boundOnWinner = FB.apply((n) => onWinner(state,n))
-
-    // better way to bind? nope! that's what they are for!
-    playersRef.on('child_added', state.boundOnJoin)
-    playersRef.on('child_changed', state.boundOnUpdate)
-    playersRef.on('child_removed', state.boundOnQuit)
 
     gameRef.child('winner').on('value', state.boundOnWinner)
 
@@ -115,10 +111,7 @@ angular.module('services')
   }
 
   function disconnect(state:IPlayerState) {
-    state.playersRef.off('child_added', state.boundOnJoin)
-    state.playersRef.off('child_changed', state.boundOnUpdate)
-    state.playersRef.off('child_removed', state.boundOnQuit)
-
+    SharedArray.unbind(state.sharedPlayers)
     state.gameRef.child('winner').off('value', state.boundOnWinner)
   }
 
@@ -131,6 +124,8 @@ angular.module('services')
   }
 
   // you need to define the functions in here, so they have access to the state!
+  // hmm... how do I know which one is me?
+  // well, I should bind to a function instead
   function join(state:IPlayerState, name:string, avatar:string) {
 
     state.myname = name
@@ -150,48 +145,7 @@ angular.module('services')
 
     console.log("JOIN", player.name)
 
-    var ref = state.playersRef.child(player.name)
-    ref.removeOnDisconnect();
-    FB.update(ref, player)
-  }
-
-  // what can change on a person?
-  function onJoin(state:IPlayerState, player:IPlayer) {
-    // state.current needs to refer to the SAME player you add to the array
-    if (!state.current && player.name == state.myname) {
-      state.current = player
-    }
-    state.all.push(player)
-  }
-
-  function onUpdate(state:IPlayerState, remotePlayer:IPlayer) {
-    var player = playerByName(state.all, remotePlayer.name)
-    if (!player) {
-      return console.log("Error, player not found: "+remotePlayer.name)
-    }
-
-    //console.log("Update:", player.name, "state="+player.state)
-
-    // copy as many properites as you care about
-    player.x = remotePlayer.x
-    player.y = remotePlayer.y
-    player.direction = remotePlayer.direction
-    player.state = remotePlayer.state;
-    player.wins = remotePlayer.wins;
-    player.losses = remotePlayer.losses;
-    player.taunt = remotePlayer.taunt;
-    //player.walking = remotePlayer.walking;
-    if (remotePlayer.killer) player.killer = remotePlayer.killer
-
-    if (player.state == STATE.DEAD) {
-      $rootScope.$broadcast("kill", player)
-      // EVERYONE needs to check the win, because otherwise the game doesn't end!
-      checkWin(state)
-    }
-  }
-
-  function onQuit(state:IPlayerState, player:IPlayer) {
-    state.all = state.all.filter((p) => p.name != player.name)
+    SharedArray.push(state.playersRef, player)
   }
 
   function onWinner(state:IPlayerState, name:string) {
@@ -201,6 +155,8 @@ angular.module('services')
       state.winner = name
       return
     }
+
+    console.log("ON WINNER", name)
 
     // ignore if it hasn't changed
     if (name == state.winner) return
@@ -220,19 +176,20 @@ angular.module('services')
   function resetGame(state:IPlayerState) {
     console.log("Initialize Game")
 
-    state.current.x = Board.randomX()
-    state.current.y = Board.randomY()
-    state.current.direction = Board.DOWN
-    state.current.state = STATE.ALIVE
-    state.current.taunt = null
+    var current = currentPlayer(state)
+    current.x = Board.randomX()
+    current.y = Board.randomY()
+    current.direction = Board.DOWN
+    current.state = STATE.ALIVE
+    current.taunt = null
 
-    FB.update(state.playersRef.child(state.current.name), state.current)
+    SharedArray.set(state.playersRef, current)
   }
 
   // makes the game playable
   function startGame(state:IPlayerState) {
-      console.log("START Game!")
-      state.gameRef.child('winner').remove()
+    console.log("START Game!")
+    state.gameRef.child('winner').remove()
   }
 
   // killPlayer ONLY happens from the current player's perspective. yOu can only kill yourself
@@ -241,12 +198,13 @@ angular.module('services')
     player.state = STATE.DEAD
     player.losses += 1
     player.killer = killerName
-    FB.update(state.playersRef.child(player.name), player)
+    SharedArray.set(state.playersRef, player)
   }
 
   // EVERYONE sets winner / game state to over
   // but only the winner can add his score if he's paying attention
   function checkWin(state:IPlayerState) {
+    throw new Error("OH NO")
     var alive = alivePlayers(state.all)
     if (alive.length > 1) return
 
@@ -267,8 +225,7 @@ angular.module('services')
   }
 
   function move(state:IPlayerState, player:IPlayer) {
-    var playerRef = state.playersRef.child(player.name)
-    FB.update(playerRef, player)
+    SharedArray.update(state.playersRef, player, ["x","y", "direction"])
   }
   
   // just make them class members?
@@ -286,6 +243,14 @@ angular.module('services')
   function isPaid():bool {
     return (localStorage.getItem("payment_status") == "paid");
     //return FB.apply(function () {return (localStorage.getItem("payment_status") == "paid")});
+  }
+
+  // caches the current player if it doesn't exist yet
+  function currentPlayer(state:IPlayerState):IPlayer {
+    if (!state.current)
+      state.current = playerByName(state.all, state.myname)
+
+    return state.current
   }
 
 })

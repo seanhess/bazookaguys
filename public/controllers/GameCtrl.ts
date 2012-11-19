@@ -70,24 +70,28 @@ angular.module('controllers')
   // ignore ALL key presses if they are dead
   $scope.keypress = function (e) {
 
-      // you can do ANYTHING if you are dead, or if the game is currently OVER
-      if (!Players.isAlive(players.current)) return
-      if (players.winner) return
+    var current = Players.current(players)
 
-      if (e.keyCode === 32)
-        return Missiles.fireMissile(missiles, players.current)
+    console.log(current)
 
-      var direction = keyCodeToDirection(e.keyCode)
-      if (!direction) return
+    // you can do ANYTHING if you are dead, or if the game is currently OVER
+    if (!Players.isAlive(current)) return
+    if (players.winner) return
 
-      var position = Board.move(players.current, direction)
-      if (!position) return
-        
-      // the x and y change
-      players.current.x = position.x
-      players.current.y = position.y
-      players.current.direction = position.direction
-      Players.move(players, players.current);
+    if (e.keyCode === 32)
+      return Missiles.fireMissile(missiles, current)
+
+    var direction = keyCodeToDirection(e.keyCode)
+    if (!direction) return
+
+    var position = Board.move(current, direction)
+    if (!position) return
+      
+    // the x and y change
+    current.x = position.x
+    current.y = position.y
+    current.direction = position.direction
+    Players.move(players, current);
 
       // WILL I HIT ANY OTHER PLAYERS?
 
