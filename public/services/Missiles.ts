@@ -23,6 +23,7 @@ interface IMissile extends IPoint {
 
 interface IMissileService {
   connect(gameId:string, players:IPlayerState):IMissileState;
+  disconnect(state:IMissileState);
   fireMissile(state:IMissileState, player:IPlayer);
 }
 
@@ -36,6 +37,7 @@ angular.module('services')
 
     return {
       connect: connect,
+      disconnect: disconnect,
       fireMissile: fireMissile,
     }
 

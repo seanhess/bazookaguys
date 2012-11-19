@@ -47,7 +47,7 @@ angular.module('controllers')
 
 
   // AUDIO
-  SoundEffects.music()
+  var music = SoundEffects.music()
 
   $scope.test = function() {
     //SoundEffects.rocket()
@@ -87,5 +87,7 @@ angular.module('controllers')
 
   $scope.$on('$destroy', function() {
     Players.disconnect(players)
+    Missiles.disconnect(missiles)
+    SoundEffects.pause(music)
   });
 })

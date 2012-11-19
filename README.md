@@ -32,7 +32,6 @@ Needs
 
 Hit List
 --------
-* Two missiles colliding should explode
 
 * names with spaces in them?
 * Explosion (NEED: explosion and rocket in the same format)
@@ -40,12 +39,13 @@ Hit List
 * (bug) you can kill yourself?
 * (bug) disconnect from missiles too (in game)
 * (bug) player animations not propogating to other computers!??!?
-* <script async></script> loading
 
 * (clean) use signals/events instead of $rootScope.broadcast
 * (clean) going back to the main page should clean up the game. (music doesn't stop, doesn't remove you from the game)
 * (idea) switch game/matches when you switch matches?
 
+* DONE <script async></script> loading (Doesn't need it!)
+* DONE Two missiles colliding should explode
 * DONE Collide with other players
 * DONE deploy to server with REAL domain (can heroku do it? Do you need hosting?)
 * DONE (bug) loop music

@@ -1,13 +1,8 @@
 interface ISoundEffectsService {
+  pause(audio:HTMLAudioElement);
   music();
   explosion();
   rocket();
-}
-
-declare class Audio {
-  currentTime: number;
-  play();
-  pause();
 }
 
 angular.module('services')
@@ -19,25 +14,31 @@ angular.module('services')
   //var underwater = new Audio("/audio/Underwater.mp3")
   var epic = new Audio("/audio/UnderwaterEpicBattle.mp3")
 
-  function makeMusic(audio:any, seconds:number):() => void {
+  function makeMusic(audio:HTMLAudioElement, seconds:number):() => void {
     seconds = seconds || 0
+
     return function() {
-      audio.play();
+
+      // if already playing it should be available
+      if (audio.currentTime > 0) {
+        audio.pause()
+        audio.currentTime = seconds
+        audio.play()
+      }
+
+      // otherwise, assume it has just loaded?
+      $(audio).bind("canplay", function() {
+        audio.currentTime = seconds
+        audio.play()
+      })
+
+      return audio
     }
 
-    //var callback = function() {
-      //$(audio).bind("canplay", function() {
-        //console.log("makeMusic - canplay")
-        //audio.currentTime = seconds
-        //audio.play()
-      //})
-    //}
-    //audio.load()
-    //return callback
   }
 
   // all parameters required
-  function makeSound(audio:any, seconds:number, duration:number):() => void {
+  function makeSound(audio:HTMLAudioElement, seconds:number, duration:number):() => void {
     return function() {
       audio.pause()
       // we don't want the canplay thing if we're going to play it after it's been really loaded.
@@ -48,11 +49,19 @@ angular.module('services')
           audio.pause()
         }, duration)
       //})
+
+      return audio
     }
   }
 
+  function pause(audio:HTMLAudioElement) {
+    audio.pause()
+  }
+
   return {
-    music: makeMusic(bgMusic, 8), // start at 8 seconds
+    pause: pause,
+
+    music: makeMusic(bgMusic, 0), // start at 8 seconds
     explosion: makeSound(epic, 0, 750), // 1 - 1.5
     rocket: makeSound(epic, 1, 500)
     //levelUp: makeSound(underwater, 76, 2500)
