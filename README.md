@@ -32,20 +32,21 @@ Needs
 
 Hit List
 --------
+* Two missiles colliding should explode
+
 * names with spaces in them?
 * Explosion (NEED: explosion and rocket in the same format)
 * Rocket animation 
 * (bug) you can kill yourself?
 * (bug) disconnect from missiles too (in game)
 * (bug) player animations not propogating to other computers!??!?
-* Collide with other players
-* Two missiles colliding should explode
 * <script async></script> loading
 
 * (clean) use signals/events instead of $rootScope.broadcast
 * (clean) going back to the main page should clean up the game. (music doesn't stop, doesn't remove you from the game)
 * (idea) switch game/matches when you switch matches?
 
+* DONE Collide with other players
 * DONE deploy to server with REAL domain (can heroku do it? Do you need hosting?)
 * DONE (bug) loop music
 * DONE (bug) current player not set when you check winner? BIG ONE: the old Players object is kicking around, and IT gets all set up and good to go, but the new one doesn't
