@@ -14,11 +14,8 @@ Compiling
     make
 
 
-
-
 * Don't respawn the winner. keep him in the same place
 * bug: the missile disapepars and he dies
-
 
 Ideas
 -----
@@ -33,17 +30,24 @@ Needs
 Hit List
 --------
 
-* names with spaces in them?
+* (feature) leaderboards
+* (feature) metrics
+* (feature) chat bubbles
+* (feature) powerups
+
 * Explosion (NEED: explosion and rocket in the same format)
 * Rocket animation 
 * (bug) you can kill yourself?
-* (bug) disconnect from missiles too (in game)
 * (bug) player animations not propogating to other computers!??!?
 
 * (clean) use signals/events instead of $rootScope.broadcast
-* (clean) going back to the main page should clean up the game. (music doesn't stop, doesn't remove you from the game)
 * (idea) switch game/matches when you switch matches?
+* (clean) automated tests
 
+
+* DONE names with spaces in them? (spaces are ok, other characters are not)
+* DONE (clean) going back to the main page should clean up the game. (music doesn't stop, doesn't remove you from the game)
+* DONE (bug) disconnect from missiles too (in game)
 * DONE <script async></script> loading (Doesn't need it!)
 * DONE Two missiles colliding should explode
 * DONE Collide with other players

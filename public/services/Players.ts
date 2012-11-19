@@ -65,7 +65,7 @@ interface IPlayerService {
 
 angular.module('services')
 
-.factory('Players', function($rootScope:ng.IScope, FB:IFirebaseService, Board:IBoard, AppVersion:string, SharedArray:shared.ArrayService):IPlayerService {
+.factory('Players', function($rootScope:ng.IScope, FB:IFirebaseService, Board:IBoard, AppVersion:string, SharedArray:shared.ArrayService, Id:IdService):IPlayerService {
   // the big cheese. Does the deed
   // you can make fancy bindings here, no?
 
@@ -128,6 +128,9 @@ angular.module('services')
   // hmm... how do I know which one is me?
   // well, I should bind to a function instead
   function join(state:IPlayerState, name:string, avatar:string) {
+
+    // strip baddies
+    name = Id.sanitize(name)
 
     state.myname = name
 

@@ -16,7 +16,7 @@ angular.module('services')
     
   function sanitize(name:string):string {
     if (!name) return null
-    return name.toString().replace(/[^a-z0-9]/gi, "")
+    return name.toString().replace(/[^a-z0-9\s]/gi, "")
   }
 
   function randomId():string {
