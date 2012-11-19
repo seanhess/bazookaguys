@@ -1,3 +1,4 @@
+// TODO player collisions
 
 // And I like passing the state around instead of making it internal
 // but keep it minimal (use state.all instead of state)

@@ -1,18 +1,24 @@
 ///<reference path="../def/angular.d.ts"/>
+///<reference path="./Shared"/>
 // This service keeps track of the missiles
+
+// this is GAY. use a real event instead!
+// TODO broadcast for sound effect! $rootScope.$broadcast("missile", missile)
 
 interface IMissileState {
   all: IMissile[];
 
   // private stuff
-  missilesRef:fire.IRef;
+  ref:fire.IRef;
+  shared:shared.IArray;
+  timer:number;
 }
 
 interface IMissile extends IPoint {
   x: number;
   y: number;
   direction: string;
-  sourcePlayer: string;
+  name: string;
 }
 
 interface IMissileService {
@@ -24,7 +30,9 @@ angular.module('services')
 
 
 // TODO use signals / events instead of rootScope stuff
-.factory('Missiles', function($rootScope:ng.IRootScopeService, FB:IFirebaseService, Board:IBoard, Players:IPlayerService):IMissileService {
+.factory('Missiles', function($rootScope:ng.IRootScopeService, FB:IFirebaseService, Board:IBoard, Players:IPlayerService, SharedArray:shared.ArrayService):IMissileService {
+
+    var MISSILE_DELAY = 80
 
     return {
       connect: connect,
@@ -32,31 +40,25 @@ angular.module('services')
     }
 
     function connect(gameId:string, players:IPlayerState):IMissileState {
-
-      console.log("M.connect", players.id)
       var missilesRef = FB.game(gameId).child('missiles')
 
       var all = []
+      var shared = SharedArray.bind(missilesRef)
+      var timer = setInterval(() => moveMissiles(state, players), MISSILE_DELAY)
 
       var state = {
-        missilesRef:missilesRef,
-        all:all,
+        ref:missilesRef,
+        shared:shared,
+        all: <IMissile[]> shared.value,
+        timer: timer,
       }
-
-      missilesRef.on('child_added', FB.apply((m) => onNewMissile(state, players, m)))
-      missilesRef.on('child_removed', FB.apply((m) => onRemovedMissile(state)))
 
       return state
     }
 
-    function missileByPlayerName(missiles:IMissile[], name:string) {
-      return missiles.filter(function(m:IMissile) {
-        return (m.sourcePlayer == name)
-      })[0]
-    }
-
-    function playerHasMissile(missiles:IMissile[], player:IPlayer) {
-      return missileByPlayerName(missiles, player.name)
+    function disconnect(state:IMissileState) {
+      SharedArray.unbind(state.shared)
+      clearInterval(state.timer)
     }
 
     // this does NOT check for deadness. Do that somewhere else
@@ -69,11 +71,10 @@ angular.module('services')
         x: player.x,
         y: player.y,
         direction: player.direction,
-        sourcePlayer: player.name
+        name: player.name
       }
 
-      state.missilesRef.child(player.name).removeOnDisconnect();
-      state.missilesRef.child(player.name).set(missile)
+      SharedArray.push(state.ref, missile)
     }
 
     // everyone moves all missiles
@@ -82,46 +83,46 @@ angular.module('services')
     // TODO use a SINGLE timer for ALL missiles (observer?)
     // TODO do any missiles collide with each other?
 
-    function onNewMissile(state:IMissileState, players:IPlayerState, missile:IMissile) {
-      state.all.push(missile)
-      $rootScope.$broadcast("missile", missile)
+    function moveMissiles(state:IMissileState, players:IPlayerState) {
+      $rootScope.$apply(function() {
+        state.all.forEach((m:IMissile) => moveMissile(state, players, m))
+      })
+    }
 
-      var missTimer = setInterval(function() {
-        $rootScope.$apply(function() {
-          moveMissile()
-        })
-      }, 80);
+    function moveMissile(state:IMissileState, players:IPlayerState, missile:IMissile) {
+      console.log("MOVE MISSILE", missile.name, missile.x, missile.y)
+      var position = Board.move(missile, missile.direction)
+      if (!position) return explodeMissile(state, missile)
 
-      function moveMissile() {
-        // move the missile
-        var position = Board.move(missile, missile.direction)
-        if (!position) return explodeMissile(missile)
+      missile.x = position.x
+      missile.y = position.y
+      missile.direction = position.direction
 
-        missile.x = position.x
-        missile.y = position.y
-        missile.direction = position.direction
+      // Check to see if the missile hits anyone
+      var hitPlayer = <IPlayer> Board.findHit(players.all, missile)
+      if (hitPlayer) {
+        explodeMissile(state, missile) // if you see it hit, then remove it
 
-        // Check to see if the missile hits anyone
-        var hitPlayer = <IPlayer> Board.findHit(players.all, missile)
-        if (hitPlayer) {
-          explodeMissile(missile) // if you see it hit, then remove it
-
-          // if it's YOUR missile, blow them up!
-          if (missile.sourcePlayer == players.current.name)
-            Players.killPlayer(players, hitPlayer, missile.sourcePlayer)
-        }
-      }
-
-      // how to do this? should I client-side predict?
-      function explodeMissile(missile:IMissile) {
-        var idx = state.all.indexOf(missile)
-        if (idx != -1) state.all.splice(idx,1)
-        clearInterval(missTimer)
-        state.missilesRef.child(missile.sourcePlayer).remove()
+        // if it's YOUR missile, blow them up!
+        if (missile.name == players.current.name)
+          Players.killPlayer(players, hitPlayer, missile.name)
       }
     }
 
-    function onRemovedMissile(missile) {
+    // how to do this? should I client-side predict?
+    function explodeMissile(state:IMissileState, missile:IMissile) {
+      var idx = state.all.indexOf(missile)
+      if (idx != -1) state.all.splice(idx,1)
+      SharedArray.remove(state.ref, missile)
+    }
 
+    function missileByPlayerName(missiles:IMissile[], name:string) {
+      return missiles.filter(function(m:IMissile) {
+        return (m.name == name)
+      })[0]
+    }
+
+    function playerHasMissile(missiles:IMissile[], player:IPlayer) {
+      return missileByPlayerName(missiles, player.name)
     }
 })

@@ -1,6 +1,9 @@
 // This makes an object that is matched to the shared representation of it
 
-// TODO conflicts? updates? right now we save the whole object over and over. probably a lot going over the wire
+// DONE updates
+// TODO not based on name. Can you find out what the ref name is some other way? set a secret refname, not based on a property on the object? Like, what if I wanted more than one missile per player?
+// TODO events when items are pushed and removed (and updated?)
+
 
 ///<reference path="../def/angular.d.ts"/>
 ///<reference path="./FB"/>
