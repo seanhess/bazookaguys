@@ -94,7 +94,7 @@ angular.module('services')
     // need to clean up the object. Make sure all keys are defined, and there are no $$hashKeys and the like
     var updates = {}
     Object.keys(object).forEach(function(key) {
-      if (object[key] && !key.match(/^\$/))
+      if (typeof object[key] !== "undefined" && !key.match(/^\$/))
         updates[key] = object[key]
     })
 
@@ -117,7 +117,7 @@ angular.module('services')
   function makeUpdate(f:fire.IValueCB):fire.ISnapshotCB {
     return function(snap:fire.ISnapshot) {
       if (updating) return
-      console.log("UPDATING", JSON.stringify(snap.val()))
+      //console.log("UPDATING", JSON.stringify(snap.val()))
       if ((<any>$rootScope).$$phase)
         return f(snap.val())
 
@@ -203,6 +203,7 @@ angular.module('services')
   function push(arrayRef:fire.IRef, item:shared.IArrayItem) {
     var ref = arrayRef.child(item.name)
     ref.removeOnDisconnect()
+    console.log("WAHOO", item)
     SharedObject.set(ref, item, false)
   }
 

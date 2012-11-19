@@ -143,7 +143,7 @@ angular.module('services')
       version: AppVersion,
     }
 
-    console.log("JOIN", player.name)
+    console.log("JOIN", player)
 
     SharedArray.push(state.playersRef, player)
   }
@@ -194,17 +194,18 @@ angular.module('services')
 
   // killPlayer ONLY happens from the current player's perspective. yOu can only kill yourself
   function killPlayer(state:IPlayerState, player:IPlayer, killerName:string) {
-    console.log("KILL", player.name, "by", killerName)
     player.state = STATE.DEAD
     player.losses += 1
     player.killer = killerName
     SharedArray.set(state.playersRef, player)
+
+    // TODO when someone dies, check wins!
+    checkWin(state)
   }
 
   // EVERYONE sets winner / game state to over
   // but only the winner can add his score if he's paying attention
   function checkWin(state:IPlayerState) {
-    throw new Error("OH NO")
     var alive = alivePlayers(state.all)
     if (alive.length > 1) return
 
