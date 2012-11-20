@@ -1,10 +1,12 @@
 ///<reference path="../def/angular.d.ts"/>
 ///<reference path="../def/mixpanel.d.ts"/>
 
+///<reference path="./Auth.ts"/>
+
 // just match the interface of mixpanel for now
 interface IMetrics {
   track(event:string, info?:any);
-  identify(userId:string);
+  identify(user:IAuthUser);
 
   login();
   logout();
@@ -31,11 +33,19 @@ angular.module('services')
   }
 
   function track(event:string, info?:any) {
+    console.log("TRACK", event, info)
     mixpanel.track(event, info)
   }
 
-  function identify(userId:string) {
-    mixpanel.track("identified", {name: userId})
-    mixpanel.identify(userId)
+  function identify(user:IAuthUser) {
+    console.log("IDENTIFY", user.username)
+    mixpanel.track("identified", user)
+    mixpanel.identify(user.username)
+    mixpanel.name_tag(user.username)
+    mixpanel.people.identify(user.username)
+    mixpanel.people.set({
+      $name: user.name,
+      $username: user.username,
+    })
   }
 })

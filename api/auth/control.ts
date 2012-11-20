@@ -1,4 +1,8 @@
+///<reference path="../def/request.d.ts"/>
+
 import express = module('express')
+import request = module('request')
+
 var OAuth = require('oauth').OAuth
 
 // TODO drop sessions by passing EVERYTHING through the url
@@ -30,6 +34,11 @@ interface Session {
 // share this between both!
 interface IUser {
   username: string;
+  twitterId: string;
+  twitterScreenName: string;
+  avatarUrl?: string;
+  name?:string;
+  description?:string;
 }
 
 interface SessionOauth {
@@ -38,6 +47,19 @@ interface SessionOauth {
   accessToken?:string;
   accessSecret?:string;
   verifier?:string;
+}
+
+// TWITTER USER: there are more properties
+//https://api.twitter.com/1/users/show.json?screen_name=twitterapi&include_entities=true
+interface ITwitterUser {
+  id: number;
+  id_str: string;
+  name: string;
+  screen_name: string;
+  location: string;
+  url: string;
+  description: string;
+  profile_image_url: string;
 }
 
 function consumer(options:OAuthOptions) {
@@ -87,7 +109,6 @@ routes.get('/api/auth/twitter/login', function(req:SessionRequest, res:express.S
     req.session.oauth.requestToken = requestToken
     req.session.oauth.requestSecret = requestSecret
     req.session.gameId = gameId
-    // I have all the info right here!
     res.redirect("https://api.twitter.com/oauth/authenticate?oauth_token=" + requestToken)
   })
 })
@@ -100,11 +121,32 @@ routes.get('/api/auth/twitter/callback', function(req:SessionRequest, res:expres
     if (err) return res.json(err, 500)
     oauth.accessToken = accessToken
     oauth.accessSecret = accessSecret
-    req.session.user = {username: profile.screen_name, twitterId: profile.user_id}
-    var url = "/#/identify"
-    if (req.session.gameId) url += "?gameId=" + req.session.gameId
-    res.redirect(url)
+    console.log("PROFILE", profile)
+    req.session.user = {username: profile.screen_name, twitterId: profile.user_id, twitterScreenName: profile.screen_name}
+
+    request.get({url: "https://api.twitter.com/1/users/show.json?screen_name="+req.session.user.username+"&include_entities=true", json:true}, function(err, rs, user:ITwitterUser) {
+      if (err) return res.json(err, 500)
+
+      req.session.user.twitterId = user.id_str
+      req.session.user.twitterScreenName = user.screen_name
+      req.session.user.avatarUrl = user.profile_image_url
+      req.session.user.name = user.name
+      req.session.user.description = user.description
+
+      console.log("LOGGED IN!", req.session.user)
+
+      var url = "/#/identify"
+      if (req.session.gameId) url += "?gameId=" + req.session.gameId
+      res.redirect(url)
+    })
   })
 })
+
+// FULL PROFILE INFORMATION
+// https://api.twitter.com/1/users/show.json?screen_name=seanhess&include_entities=true
+
+// FRIENDS AND FOLLOWERS
+// https://api.twitter.com/1/followers/ids.json?cursor=-1&screen_name=twitterapi
+// https://api.twitter.com/1/friends/ids.json?cursor=-1&screen_name=seanhess
 
 

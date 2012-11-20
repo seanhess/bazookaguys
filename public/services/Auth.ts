@@ -3,7 +3,10 @@
 ///<reference path="../services/Id"/>
 
 interface IAuthUser {
-  username:string;
+  username: string;
+  avatarUrl?: string;
+  name?:string;
+  description?:string;
 }
 
 interface IAuth {
@@ -45,7 +48,9 @@ angular.module('services')
 
       .success(function(data:IAuthUser) {
         user.username = data.username
-        //mixpanel.identify(user.username)
+        user.name = data.name
+        user.description = data.description
+        user.avatarUrl = data.avatarUrl
         if (cb) cb(user)
       })
 

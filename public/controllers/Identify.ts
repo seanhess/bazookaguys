@@ -64,7 +64,7 @@ angular.module('controllers')
     else {
       $scope.user = Auth.getUser(function(user:IAuthUser) {
         if (user.username) {
-          Metrics.identify(user.username)
+          Metrics.identify(user)
         }
       })
     }
