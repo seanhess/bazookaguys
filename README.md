@@ -35,6 +35,7 @@ Hit List
 * (feature) chat bubbles
 * (feature) powerups
 
+* (bug) lost our kill notice. can I use bindings somehow? Or bring back events?
 * Explosion (NEED: explosion and rocket in the same format)
 * Rocket animation 
 * (bug) you can kill yourself?
