@@ -145,7 +145,7 @@ angular.module('services')
       state: STATE.ALIVE,
       wins: 0,
       losses: 0,
-      taunt: null,
+      taunt: "",
       version: AppVersion,
     }
 
@@ -187,7 +187,7 @@ angular.module('services')
     current.y = Board.randomY()
     current.direction = Board.DOWN
     current.state = STATE.ALIVE
-    current.taunt = null
+    current.taunt = ""
 
     SharedArray.set(state.playersRef, current)
   }

@@ -147,7 +147,6 @@ angular.module('services')
   }
 
   function objectReplace(dest:any, source:any) {
-    objectEmpty(dest)
     objectExtend(dest, source)
   }
 

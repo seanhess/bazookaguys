@@ -35,6 +35,8 @@ Hit List
 * (feature) chat bubbles
 * (feature) powerups
 
+* (bug) hit arrow keys should cancel the bubble
+* (bug) can't shoot past dead people
 * (bug) lost our kill notice. can I use bindings somehow? Or bring back events?
 * Explosion (NEED: explosion and rocket in the same format)
 * Rocket animation 
