@@ -10,21 +10,23 @@ body, html
   font-family "Helvetica"
 
 .version
-  position absolute
-  bottom 0px
-  left 0px
   color white
   font-weight bold
 
+.instructions
+  color white
 
 .footer
   clear both
   position absolute
-  top 620px
+  top 660px
 
 #game
   margin 0px
   padding 0px
+
+  #taunt
+    opacity 0
 
   .side
     width 130px
@@ -81,6 +83,7 @@ body, html
       left 50px
       top -20px
       min-width 150px
+      min-height 1em
 
     .player
       -webkit-transition-property top, left

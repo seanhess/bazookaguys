@@ -6,20 +6,25 @@ html {
   font-family: "Helvetica";
 }
 .version {
-  position: absolute;
-  bottom: 0px;
-  left: 0px;
   color: #fff;
   font-weight: bold;
+}
+.instructions {
+  color: #fff;
 }
 .footer {
   clear: both;
   position: absolute;
-  top: 620px;
+  top: 660px;
 }
 #game {
   margin: 0px;
   padding: 0px;
+}
+#game #taunt {
+  opacity: 0;
+  -ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
+  filter: alpha(opacity=0);
 }
 #game .side {
   width: 130px;
@@ -79,6 +84,7 @@ html {
   left: 50px;
   top: -20px;
   min-width: 150px;
+  min-height: 1em;
 }
 #game #board .player {
   -webkit-transition-property: top, left;

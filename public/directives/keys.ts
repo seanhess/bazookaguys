@@ -2,7 +2,7 @@
 ///<reference path="../def/jquery.d.ts"/>
 
 angular.module('directives')
-.directive('keypress', function($parse) {
+.directive('keypress', function($parse:ng.IParseService) {
   return function(scope:ng.IScope, element:JQuery, attrs) {
     // element is a jquery element
 
@@ -24,6 +24,25 @@ angular.module('directives')
 
     element.keyup(function(e) {
       isPressed = false
+    })
+  }
+})
+
+.directive('focus', function() {
+  return function(scope:ng.IScope, element:JQuery, attrs) {
+    scope.$watch(attrs.focus, function(value) {
+      if (value) element.focus()
+    }) 
+  }
+})
+
+.directive('onEnter', function($parse:ng.IParseService) {
+  return function(scope:ng.IScope, element:JQuery, attrs) {
+    var onEnter = $parse(attrs.onEnter)
+    element.bind("keydown", function(e) {
+      if (e.keyCode == 13) {
+        onEnter(scope)
+      }
     })
   }
 })

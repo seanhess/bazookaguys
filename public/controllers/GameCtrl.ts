@@ -53,11 +53,16 @@ angular.module('controllers')
     //SoundEffects.rocket()
   }
 
+  $scope.isCurrentPlayer = function(player) {
+    return (player.name == name)
+  }
+
   var LEFT = 37,
       UP = 38,
       RIGHT = 39, 
       DOWN = 40,
-      SPACE = 32
+      SPACE = 32,
+      ENTER = 13
 
   function keyCodeToDirection(code:number):string {
     if (code == LEFT) return Board.LEFT
@@ -72,17 +77,36 @@ angular.module('controllers')
 
     var current = Players.current(players)
 
+    // TODO move to directive
+    // TODO dead-person headstone. allow you to chat when dead
+    if (e.keyCode == ENTER) {
+      $scope.chatting = true
+      $scope.taunt = " "
+      //$("#taunt").focus().bind("keydown", function(e) {
+        //if (e.keyCode == ENTER) {
+        //}
+      //})
+    }
+
     // you can do ANYTHING if you are dead, or if the game is currently OVER
     if (!Players.isAlive(current)) return
     if (players.winner) return
 
-    if (e.keyCode === 32)
+    if (e.keyCode === SPACE)
       return Missiles.fireMissile(missiles, current)
 
+
+    // otherwise it's movement
     var direction = keyCodeToDirection(e.keyCode)
     if (!direction) return
 
     Players.move(players, current, direction)
+  }
+
+  $scope.sendTaunt = function() {
+    $scope.chatting = false
+    var current = Players.current(players)
+    Players.taunt(players, current, $scope.taunt)
   }
 
   $scope.$on('$destroy', function() {

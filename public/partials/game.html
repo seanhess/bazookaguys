@@ -26,7 +26,7 @@
       <span class="alert">{{latestAlert}}</span>
     </div>
 
-    <div id="board" keypress="keypress(e)" ng-click="test()">
+    <div id="board" keypress="keypress(e)" ng-click="test()" focus="!chatting">
 
       <h1 class="winner" ng-show="players.winner">{{players.winner}} Wins!</h1>
 
@@ -38,6 +38,7 @@
           >
 
         <div class="taunt triangle-border left" ng-show="player.taunt">{{player.taunt}}</div>
+        <div class="taunt triangle-border left" ng-show="chatting && isCurrentPlayer(player)">{{taunt}}</div>
       </div>
       <div ng-repeat="missile in missiles.all"> 
       <div class="missile {{missile.direction}}" ng-style="missile | position"></div>
@@ -47,8 +48,15 @@
 
   </div>
 
-  <div class="version">v{{version}}</div>
-
-  <div class="instructions" style="position: absolute; bottom: 20px; color: white">Use arrow keys to move. Space to fire. If someone wins, the game restarts in 2 seconds.</div>
+  <div class="footer">
+    <div class="version">v{{version}}</div>
+    <div class="instructions">
+      <li>Use arrow keys to move. 
+      <li>Space to fire. 
+      <li>If someone wins, the game restarts in 2 seconds.
+    </div>
+    <!-- can you detect what already had the focus? -->
+    <div><input id="taunt" ng-model="taunt" focus="chatting" on-enter="sendTaunt()"></div>
+  <div>
 
 </div>

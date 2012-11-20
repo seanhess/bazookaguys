@@ -56,6 +56,7 @@ interface IPlayerService {
   join(state:IPlayerState, name:string, avatar:string);
   killPlayer(state:IPlayerState, player:IPlayer, killerName:string);
   move(state:IPlayerState, player:IPlayer, direction:string);
+  taunt(state:IPlayerState, player:IPlayer, taunt:string);
 
   current(state:IPlayerState):IPlayer;
 
@@ -79,6 +80,7 @@ angular.module('services')
     join: join,
     killPlayer: killPlayer,
     move: move,
+    taunt: taunt,
     resetGame: resetGame,
     disconnect: disconnect,
     current: currentPlayer,
@@ -242,6 +244,17 @@ angular.module('services')
     player.direction = position.direction
 
     SharedArray.update(state.playersRef, player, ["x","y", "direction"])
+  }
+
+  // taunt, then make it go away in 5 seconds
+  function taunt(state:IPlayerState, player:IPlayer, taunt:string) {
+    if (!taunt || !taunt.match(/\w/)) return
+    player.taunt = taunt
+    SharedArray.update(state.playersRef, player, ["taunt"])
+    setTimeout(function() {
+        player.taunt = ""
+        SharedArray.update(state.playersRef, player, ["taunt"])
+    }, 3000)
   }
   
   // just make them class members?
