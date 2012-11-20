@@ -4,6 +4,7 @@
 // but keep it minimal (use state.all instead of state)
 
 ///<reference path="../def/angular.d.ts"/>
+///<reference path="../def/signals.d.ts"/>
 ///<reference path="./FB"/>
 ///<reference path="./AppVersion"/>
 ///<reference path="./Board"/>
@@ -34,6 +35,10 @@ interface IPlayerState {
   isPaid: bool;
   all: IPlayer [];
   id?: string;
+
+  // signals
+  killed: signals.ISignal;
+  gameOver: signals.ISignal; // finished a game
 
   // private stuff. not for binding
   myname:string;
@@ -98,6 +103,9 @@ angular.module('services')
       gameRef:gameRef,
       playersRef:playersRef,
 
+      killed: new signals.Signal(),
+      gameOver: new signals.Signal(),
+
       current: null,
       sharedPlayers: sharedPlayers,
       winner: null,
@@ -116,6 +124,8 @@ angular.module('services')
   function disconnect(state:IPlayerState) {
     SharedArray.unbind(state.sharedPlayers)
     state.gameRef.child('winner').off('value', state.boundOnWinner)
+    state.killed.dispose()
+    state.gameOver.dispose()
   }
 
   function isAlive(p:IPlayer):bool {
@@ -149,8 +159,6 @@ angular.module('services')
       version: AppVersion,
     }
 
-    console.log("JOIN", player)
-
     SharedArray.push(state.playersRef, player)
   }
 
@@ -162,14 +170,12 @@ angular.module('services')
       return
     }
 
-    console.log("ON WINNER", name)
-
     // ignore if it hasn't changed
     if (name == state.winner) return
 
+    state.gameOver.dispatch(name)
+
     state.winner = name
-    console.log("WE HAVE A WINNER", state.winner)
-    $rootScope.$broadcast("winner", name)
 
     // Now EVERYONE resets the game together. Since we're all setting it to the same state, it's ok.
     setTimeout(() => resetGame(state), 1000)
@@ -180,8 +186,6 @@ angular.module('services')
   // only resets YOU. any players not paying attention don't get reset. they get REMOVED?
   // at least we can make them be dead
   function resetGame(state:IPlayerState) {
-    console.log("Initialize Game")
-
     var current = currentPlayer(state)
     current.x = Board.randomX()
     current.y = Board.randomY()
@@ -194,7 +198,6 @@ angular.module('services')
 
   // makes the game playable
   function startGame(state:IPlayerState) {
-    console.log("START Game!")
     state.gameRef.child('winner').remove()
   }
 
@@ -216,7 +219,6 @@ angular.module('services')
     if (alive.length > 1) return
 
     var winner = alive[0]
-    console.log("WINNER", winner)
     //if (state.current == null || winner != state.current) return
 
     // Game is OVER, set the winner

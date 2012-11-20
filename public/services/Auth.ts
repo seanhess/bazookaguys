@@ -1,4 +1,5 @@
 ///<reference path="../def/angular.d.ts"/>
+///<reference path="../def/mixpanel.d.ts"/>
 ///<reference path="../services/Id"/>
 
 interface IAuthUser {
@@ -8,7 +9,7 @@ interface IAuthUser {
 interface IAuth {
   //isLoggedIn:
   // needs things you can bind to.. no?
-  getUser():IAuthUser;
+  getUser(cb?:(user:IAuthUser)=>void):IAuthUser;
   fakeUser(name:string):IAuthUser;
   logout(user:IAuthUser);
   twitterAuthUrl(gameId:string):string;
@@ -37,13 +38,15 @@ angular.module('services')
     }
 
     // "promise" oriented status fetcher
-    function getUser():IAuthUser {
+    function getUser(cb?:(user:IAuthUser)=>void):IAuthUser {
       var user:IAuthUser = {username: null}
 
       $http.get("/api/auth/user")
 
       .success(function(data:IAuthUser) {
         user.username = data.username
+        //mixpanel.identify(user.username)
+        if (cb) cb(user)
       })
 
       return user

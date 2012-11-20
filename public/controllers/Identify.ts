@@ -3,6 +3,7 @@
 ///<reference path="../services/Players"/>
 ///<reference path="../services/Auth"/>
 ///<reference path="../services/Id"/>
+///<reference path="../services/Metrics"/>
 
 console.log("Register: IdentifyCtrl")
 
@@ -18,6 +19,7 @@ interface IdentifyScope extends ng.IScope {
 
   user:IAuthUser;
   twitterAuthUrl(gameId:string):string;
+  login();
   logout();
   showHangoutButton:bool;
 
@@ -42,7 +44,7 @@ interface IdentifyRouteParams {
 }
 
 angular.module('controllers')
-.controller('IdentifyCtrl', function($scope: IdentifyScope, $location: ng.ILocationService, Players:IPlayerService, AppVersion: string, Auth:IAuth, $routeParams:IdentifyRouteParams, Id:IdService) {
+.controller('IdentifyCtrl', function($scope: IdentifyScope, $location: ng.ILocationService, Players:IPlayerService, AppVersion: string, Auth:IAuth, $routeParams:IdentifyRouteParams, Id:IdService, Metrics:IMetrics) {
 
     // HACKY way to do the transition
     $scope.intro = "intro"
@@ -58,12 +60,16 @@ angular.module('controllers')
 
     if ($routeParams.name)
       $scope.user = Auth.fakeUser($routeParams.name)
-    else
-      $scope.user = Auth.getUser() // gets the currently logged in user
+
+    else {
+      $scope.user = Auth.getUser(function(user:IAuthUser) {
+        if (user.username) {
+          Metrics.identify(user.username)
+        }
+      })
+    }
 
     $scope.showHangoutButton = $routeParams.hangout
-
-    $scope.twitterAuthUrl = Auth.twitterAuthUrl
 
     $scope.playerAvatar = 'player2'
     $scope.gameId = Id.sanitize($routeParams.gameId || "global")
@@ -77,8 +83,14 @@ angular.module('controllers')
     $scope.avatars = ['player2', 'player5', 'player3','player1', 'player4', 'player6']
     $scope.freeAvatars = ['player2', 'player5', 'player3','player1', 'player4', 'player6']
 
+    $scope.login = function() {
+      Metrics.login()
+      window.location.href = Auth.twitterAuthUrl($scope.gameId)
+    }
+
     $scope.logout = function() {
       Auth.logout($scope.user)
+      Metrics.logout()
     }
 
     // TODO Move these into a service!
@@ -105,6 +117,8 @@ angular.module('controllers')
       $scope.inviteText = "Come play bazooka guys now!"
       $scope.inviteUrl = "http%3A%2F%2Fbazookaguys.com%2F%23%2Fidentify%3FgameId%3D" + $scope.gameId
       // then, the click resolves itself
+
+      Metrics.invite($scope.user.username, $scope.gameId)
     }
 
     $scope.join = function() {

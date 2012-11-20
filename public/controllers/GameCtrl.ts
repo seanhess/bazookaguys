@@ -11,8 +11,14 @@
 ///<reference path="../directives/keys.ts"/>
 ///<reference path="../directives/sprite.ts"/>
 
+interface GameRouteParams {
+  name?: string;
+  gameId?: string;
+  avatar?: string;
+}
+
 angular.module('controllers')
-.controller('GameCtrl', function ($scope, Players:IPlayerService, Missiles:IMissileService, $routeParams:any, $location, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string) {
+.controller('GameCtrl', function ($scope, Players:IPlayerService, Missiles:IMissileService, $routeParams:GameRouteParams, $location, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string, Metrics:IMetrics) {
 
   $scope.version = AppVersion
   $scope.gameId = $routeParams.gameId
@@ -29,6 +35,8 @@ angular.module('controllers')
 
   var players = Players.connect($scope.gameId, "Game")
   Players.join(players, name, avatar)
+  Metrics.join($scope.gameId, name, avatar)
+
   $scope.players = players
 
   var missiles = Missiles.connect($scope.gameId, players)
@@ -36,9 +44,13 @@ angular.module('controllers')
 
   $scope.latestAlert = "Welcome to Your Underwater Adventure"
 
-  $scope.$on("kill", function(e, player) {
+  players.killed.add(function(player:IPlayer) {
     $scope.latestAlert = player.killer + " blew up " + player.name
     SoundEffects.explosion()
+  })
+
+  players.gameOver.add(function(winner:string) {
+    Metrics.gameOver($scope.gameId, winner, players.all.length)
   })
 
   $scope.$on("missile", function(e, player) {
@@ -77,15 +89,10 @@ angular.module('controllers')
 
     var current = Players.current(players)
 
-    // TODO move to directive
     // TODO dead-person headstone. allow you to chat when dead
     if (e.keyCode == ENTER) {
       $scope.chatting = true
       $scope.taunt = " "
-      //$("#taunt").focus().bind("keydown", function(e) {
-        //if (e.keyCode == ENTER) {
-        //}
-      //})
     }
 
     // you can do ANYTHING if you are dead, or if the game is currently OVER
@@ -98,6 +105,7 @@ angular.module('controllers')
 
     // otherwise it's movement
     var direction = keyCodeToDirection(e.keyCode)
+
     if (!direction) return
 
     Players.move(players, current, direction)
@@ -107,6 +115,7 @@ angular.module('controllers')
     $scope.chatting = false
     var current = Players.current(players)
     Players.taunt(players, current, $scope.taunt)
+    Metrics.chat(current.name, $scope.taunt)
   }
 
   $scope.$on('$destroy', function() {

@@ -30,24 +30,28 @@ Needs
 Hit List
 --------
 
+* (small) add firebase, angularjs and typescript badges + mixpanel
+
 * (feature) leaderboards
 * (feature) metrics
-* (feature) chat bubbles
 * (feature) powerups
 
+* (bug) Dead people chatting
+
+* (small) Dead people explosions + headstones (obvious you can't shoot past them)
+* (small) Explosion (NEED: explosion and rocket in the same format)
+* (small) Rocket animation 
+
 * (bug) hit arrow keys should cancel the bubble
-* (bug) can't shoot past dead people
-* (bug) lost our kill notice. can I use bindings somehow? Or bring back events?
-* Explosion (NEED: explosion and rocket in the same format)
-* Rocket animation 
+* (bug) kill notices
 * (bug) you can kill yourself?
-* (bug) player animations not propogating to other computers!??!?
 
 * (clean) use signals/events instead of $rootScope.broadcast
-* (idea) switch game/matches when you switch matches?
 * (clean) automated tests
 
-
+* DONE (feature) chat bubbles
+* DONE (bug) can't shoot past dead people (NO. dead people become headstones / obstacles)
+* DONE (bug) player animations not propogating to other computers. (I was removing the keys before re-adding them. For some reason the bindings were triggering twice. Lame)
 * DONE names with spaces in them? (spaces are ok, other characters are not)
 * DONE (clean) going back to the main page should clean up the game. (music doesn't stop, doesn't remove you from the game)
 * DONE (bug) disconnect from missiles too (in game)
@@ -62,6 +66,18 @@ Hit List
 * DONE (bug) move/fire after dead
 * DONE (bug) rounds / winning
 * DONE (bug) closed-lid players
+
+* NO (idea) switch game/matches when you switch matches? (don't really need it any more. bugs are fixed)
+
+
+METRICS
+-------
+
+How many people come?
+How long to people stay?
+How many people come back?
+How often do they come back?
+Do people invite their friends?
 
 CLEANUP
 -------

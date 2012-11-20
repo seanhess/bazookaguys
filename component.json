@@ -4,7 +4,6 @@
   "main": "./path/to/main.css",
   "directory": "public/components",
   "dependencies": {
-    "fjs": "0.5.2",
-    "DefinitelyTyped": "git://github.com/seanhess/DefinitelyTyped.git"
+    "DefinitelyTyped": "git://github.com/seanhess/DefinitelyTyped.git",
   }
 }

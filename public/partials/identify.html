@@ -26,7 +26,7 @@
     </div>
 
     <div class="login">
-      <a href="{{twitterAuthUrl(gameId)}}"><img ng-hide="user.username" src="images/sign-in-with-twitter-gray.png"></a>
+      <a ng-click="login()" ><img ng-hide="user.username" src="images/sign-in-with-twitter-gray.png"></a>
       <div ng-show="user.username" class="info">
         <span>{{user.username}}</span>
         <a ng-click="logout()">logout</a>
