@@ -17,6 +17,10 @@ html {
   position: absolute;
   top: 660px;
 }
+.badges {
+  clear: both;
+  margin: 10px;
+}
 #game {
   margin: 0px;
   padding: 0px;
