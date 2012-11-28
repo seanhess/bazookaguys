@@ -14,10 +14,7 @@ interface IMissileState {
   timer:number;
 }
 
-interface IMissile extends IPoint {
-  x: number;
-  y: number;
-  direction: string;
+interface IMissile extends IDirectional {
   name: string;
 }
 

@@ -31,21 +31,16 @@ interface IPlayer extends shared.IArrayItem {
 // only variables
 interface IPlayerState {
   current: IPlayer;
-  winner: string;
   isPaid: bool;
   all: IPlayer [];
-  id?: string;
 
   // signals
   killed: signals.ISignal;
-  gameOver: signals.ISignal; // finished a game
 
   // private stuff. not for binding
   myname:string;
-  gameRef:fire.IRef;
   playersRef:fire.IRef;
   sharedPlayers:shared.IArray;
-  boundOnWinner?:fire.ISnapshotCB;
 }
 
 // only methods
@@ -56,7 +51,7 @@ interface IPlayerService {
   playerByName(players:IPlayer[], name:string):IPlayer;
   latestVersion(players:IPlayer[]):string;
 
-  connect(gameId:string, id:string):IPlayerState;
+  connect(gameId:string):IPlayerState;
   disconnect(state:IPlayerState);
   join(state:IPlayerState, name:string, avatar:string);
   killPlayer(state:IPlayerState, player:IPlayer, killerName:string);
@@ -64,9 +59,28 @@ interface IPlayerService {
   taunt(state:IPlayerState, player:IPlayer, taunt:string);
 
   current(state:IPlayerState):IPlayer;
+}
 
-  // TODO no reset, make a NEW game
-  resetGame(state:IPlayerState);
+
+// Need a way to add type-class like functionality
+// Player behaves as an Object
+// This is the only way I can think of
+class Player implements IPlayer {
+  x:number;
+  y:number;
+  direction:string;
+  wins:number;
+  losses:number;
+  version:string;
+  name:string;
+  avatar:string;
+  taunt:string;
+  killer:string;
+  state:string;
+
+  toString():string {
+    return this.name + ": " + this.x + "," + this.y
+  }
 }
 
 angular.module('services')
@@ -91,12 +105,12 @@ angular.module('services')
     current: currentPlayer,
   }
 
-  function connect(gameId:string, id:string):IPlayerState {
+  function connect(gameId:string):IPlayerState {
 
     var gameRef = FB.game(gameId)
     var playersRef = gameRef.child('players')
 
-    var sharedPlayers = SharedArray.bind(playersRef)
+    var sharedPlayers = SharedArray.bind(playersRef, Player)
 
     var state:IPlayerState = {
       myname:null,
@@ -111,7 +125,6 @@ angular.module('services')
       winner: null,
       isPaid: isPaid(),
       all: <IPlayer[]> sharedPlayers.value,
-      id: id,
     }
 
     state.boundOnWinner = FB.apply((n) => onWinner(state,n))
@@ -234,6 +247,7 @@ angular.module('services')
   }
 
   function move(state:IPlayerState, player:IPlayer, direction:string) {
+    console.log("MOVE", player, player.toString())
 
     var position = Board.move(player, direction)
     if (!position) return

@@ -30,19 +30,19 @@ module shared {
   }
 
   export interface ObjectService {
-    bind(ref:fire.IRef):IObject;
+    bind(ref:fire.IRef, type?:Function):IObject;
     unbind(so:IObject);
     set(ref:fire.IRef, value:any, shouldIgnoreServer?:bool);
     update(ref:fire.IRef, object:any, properties:string[]);
     makeUpdate(f:fire.IValueCB):fire.ISnapshotCB;
 
     objectEmpty(obj:any);
-    objectReplace(dest:any, source:any);
+    //objectReplace(dest:any, source:any);
     objectExtend(dest:any, source:any);
   }
 
   export interface ArrayService {
-    bind(ref:fire.IRef):IArray;
+    bind(ref:fire.IRef, type?:Function):IArray;
     unbind(so:IArray);
     push(arrayRef:fire.IRef, item:IArrayItem);
     remove(arrayRef:fire.IRef, item:IArrayItem);
@@ -50,6 +50,21 @@ module shared {
     update(arrayRef:fire.IRef, object:any, properties:string[]);
   }
 }
+
+
+
+// stores a bunch of context
+// person.save()
+
+// everything explicit
+// SharedArray.set(peopleRef, person)
+
+// it can only have ONE prototype!
+// but it can have defineProperty to a function
+
+
+
+
 
 angular.module('services')
 .factory('SharedObject', function($rootScope:ng.IScope, FB:IFirebaseService):shared.ObjectService {
@@ -64,13 +79,13 @@ angular.module('services')
     set:set,
     makeUpdate:makeUpdate,
     objectEmpty:objectEmpty,
-    objectReplace:objectReplace,
+    //objectReplace:objectReplace,
     objectExtend:objectExtend,
   }
 
-
-  function bind(ref:fire.IRef):shared.IObject {
-    var so:shared.IObject = {ref: ref, value:{}}
+  function bind(ref:fire.IRef, type?:Function = Object):shared.IObject {
+    var value = Object.create(type.prototype)
+    var so:shared.IObject = {ref: ref, value:value}
 
     so.onValue = makeUpdate(function(value) {
       if (!value) return objectEmpty(so.value)
@@ -86,7 +101,8 @@ angular.module('services')
     so.ref.off('value', so.onValue)
   }
 
-
+  // this will need to know the type, no?
+  // so that when people come back with updates we can update it!
   // only work on shared objects! not shared arrays!
   // or ALWAYS have them be updates?
   // under what conditions would you want to REPLACE them?
@@ -146,9 +162,12 @@ angular.module('services')
     })
   }
 
-  function objectReplace(dest:any, source:any) {
-    objectExtend(dest, source)
-  }
+  // it was weird to delete keys. Definitely didn't work to delete then re-add them
+  // you can try to get fancier than this, but you don't really NEED to delete keys. Just set them to null
+  // If they are set to null in the source it'll carry over
+  //function objectReplace(dest:any, source:any) {
+    //objectExtend(dest, source)
+  //}
 
   function objectExtend(dest:any, source:any) {
     Object.keys(source).forEach(function(key) {
@@ -170,16 +189,18 @@ angular.module('services')
     update: update,
   }
 
-  function bind(ref:fire.IRef):shared.IArray {
+  function bind(ref:fire.IRef, type?:Function = Object):shared.IArray {
     var sa:shared.IArray = {ref: ref, value:[]}
 
     sa.onPushed = SharedObject.makeUpdate(function(value) {
-      sa.value.push(value)
+      var obj = Object.create(type.prototype)
+      SharedObject.objectExtend(obj, value)
+      sa.value.push(obj)
     })
 
     sa.onChanged = SharedObject.makeUpdate(function(value) {
       var obj = _.find(sa.value, byName(value.name))
-      SharedObject.objectReplace(obj, value)
+      SharedObject.objectExtend(obj, value)
     })
 
     sa.onRemoved = SharedObject.makeUpdate(function(value) {

@@ -76,7 +76,7 @@ angular.module('controllers')
     //console.log("GAME", $scope.gameId)
     //console.log("PLAYER", $scope.user.username)
 
-    var players = Players.connect($scope.gameId, "Identify")
+    var players = Players.connect($scope.gameId)
     $scope.players = players
 
     // available avatars

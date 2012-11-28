@@ -1,6 +1,7 @@
 ///<reference path="../def/angular.d.ts"/>
 ///<reference path="../def/underscore.d.ts"/>
 
+///<reference path="../services/Game"/>
 ///<reference path="../services/Missiles"/>
 ///<reference path="../services/Players"/>
 ///<reference path="../services/Board"/>
@@ -18,7 +19,7 @@ interface GameRouteParams {
 }
 
 angular.module('controllers')
-.controller('GameCtrl', function ($scope, Players:IPlayerService, Missiles:IMissileService, $routeParams:GameRouteParams, $location, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string, Metrics:IMetrics) {
+.controller('GameCtrl', function ($scope, Game:IGameService, Players:IPlayerService, Missiles:IMissileService, $routeParams:GameRouteParams, $location, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string, Metrics:IMetrics) {
 
   $scope.version = AppVersion
   $scope.gameId = $routeParams.gameId
@@ -33,24 +34,29 @@ angular.module('controllers')
     //return
   //}
 
-  var players = Players.connect($scope.gameId, "Game")
-  Players.join(players, name, avatar)
+  // Who decides where the walls are? Each player? no
+  // Need some concept of a game host, no?
+  // SOMEONE needs to "start" the game
+  // the first player in the list alphabetically. that can be calculated
+
+  var game = Game.connect($scope.gameId)
+
+  Players.join(game.players, name, avatar)
   Metrics.join($scope.gameId, name, avatar)
 
-  $scope.players = players
-
-  var missiles = Missiles.connect($scope.gameId, players)
-  $scope.missiles = missiles
+  $scope.players = game.players
+  $scope.missiles = game.missiles
+  $scope.walls = game.walls
 
   $scope.latestAlert = "Welcome to Your Underwater Adventure"
 
-  players.killed.add(function(player:IPlayer) {
+  game.players.killed.add(function(player:IPlayer) {
     $scope.latestAlert = player.killer + " blew up " + player.name
     SoundEffects.explosion()
   })
 
-  players.gameOver.add(function(winner:string) {
-    Metrics.gameOver($scope.gameId, winner, players.all.length)
+  game.players.gameOver.add(function(winner:string) {
+    Metrics.gameOver($scope.gameId, winner, game.players.all.length)
   })
 
   $scope.$on("missile", function(e, player) {
@@ -59,7 +65,7 @@ angular.module('controllers')
 
 
   // AUDIO
-  var music = SoundEffects.music()
+  //var music = SoundEffects.music()
 
   $scope.test = function() {
     //SoundEffects.rocket()
@@ -87,7 +93,7 @@ angular.module('controllers')
   // ignore ALL key presses if they are dead
   $scope.keypress = function (e) {
 
-    var current = Players.current(players)
+    var current = Players.current(game.players)
 
     // TODO dead-person headstone. allow you to chat when dead
     if (e.keyCode == ENTER) {
@@ -97,10 +103,10 @@ angular.module('controllers')
 
     // you can do ANYTHING if you are dead, or if the game is currently OVER
     if (!Players.isAlive(current)) return
-    if (players.winner) return
+    if (game.players.winner) return
 
     if (e.keyCode === SPACE)
-      return Missiles.fireMissile(missiles, current)
+      return Missiles.fireMissile(game.missiles, current)
 
 
     // otherwise it's movement
@@ -108,19 +114,18 @@ angular.module('controllers')
 
     if (!direction) return
 
-    Players.move(players, current, direction)
+    Players.move(game.players, current, direction)
   }
 
   $scope.sendTaunt = function() {
     $scope.chatting = false
-    var current = Players.current(players)
-    Players.taunt(players, current, $scope.taunt)
+    var current = Players.current(game.players)
+    Players.taunt(game.players, current, $scope.taunt)
     Metrics.chat(current.name, $scope.taunt)
   }
 
   $scope.$on('$destroy', function() {
-    Players.disconnect(players)
-    Missiles.disconnect(missiles)
-    SoundEffects.pause(music)
+    Game.disconnect(game)
+    //SoundEffects.pause(music)
   });
 })

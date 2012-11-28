@@ -31,21 +31,23 @@
       <h1 class="winner" ng-show="players.winner">{{players.winner}} Wins!</h1>
 
       <div class="player avatar {{player.avatar}}" 
-          ng-repeat="player in players.all | filter:{state:'alive'}"
-          ng-style="player | position"
-          sprite-direction="player.direction"
-          sprite-walking="{{player.x}} {{player.y}}"
+           ng-repeat="player in players.all | filter:{state:'alive'}"
+           ng-style="player | position"
+           sprite-direction="player.direction"
+           sprite-walking="{{player.x}} {{player.y}}"
           >
 
         <div class="taunt triangle-border left" ng-show="player.taunt">{{player.taunt}}</div>
         <div class="taunt triangle-border left" ng-show="chatting && isCurrentPlayer(player)">{{taunt}}</div>
       </div>
-      <div ng-repeat="missile in missiles.all"> 
-      <div class="missile {{missile.direction}}" ng-style="missile | position"></div>
+
+      <div class="missile {{missile.direction}}"
+           ng-repeat="missile in missiles.all"
+           ng-style="missile | position">
       </div>
 
+      <div class="wall" ng-repeat="wall in walls.all">
     </div>
-
   </div>
 
   <div class="footer">

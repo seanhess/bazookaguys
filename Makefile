@@ -1,6 +1,6 @@
 all: build
 
-build: public-build api-build
+build: public-build
 
 api-build:
 	# doesn't work to to --out if you use the module pattern at all
