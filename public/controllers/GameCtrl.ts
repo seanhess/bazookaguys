@@ -40,8 +40,8 @@ angular.module('controllers')
   // the first player in the list alphabetically. that can be calculated
 
   var game = Game.connect($scope.gameId)
-
-  Players.join(game.players, name, avatar)
+  var player = Players.newPlayer(name, avatar)
+  Game.join(game, player)
   Metrics.join($scope.gameId, name, avatar)
 
   $scope.players = game.players
@@ -50,16 +50,17 @@ angular.module('controllers')
 
   $scope.latestAlert = "Welcome to Your Underwater Adventure"
 
-  game.players.killed.add(function(player:IPlayer) {
-    $scope.latestAlert = player.killer + " blew up " + player.name
-    SoundEffects.explosion()
-  })
+  // DOESN'T WORK: need a way to die into observing changes
+  //game.players.killed.add(function(player:IPlayer) {
+    //$scope.latestAlert = player.killer + " blew up " + player.namea
+    //SoundEffects.explosion()
+  //})
 
-  game.players.gameOver.add(function(winner:string) {
+  game.gameOver.add(function(winner:string) {
     Metrics.gameOver($scope.gameId, winner, game.players.all.length)
   })
 
-  $scope.$on("missile", function(e, player) {
+  $scope.$on("amissile", function(e, player) {
     SoundEffects.rocket()
   })
 
@@ -103,7 +104,7 @@ angular.module('controllers')
 
     // you can do ANYTHING if you are dead, or if the game is currently OVER
     if (!Players.isAlive(current)) return
-    if (game.players.winner) return
+    if (game.winner) return
 
     if (e.keyCode === SPACE)
       return Missiles.fireMissile(game.missiles, current)

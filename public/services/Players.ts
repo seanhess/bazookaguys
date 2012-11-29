@@ -30,6 +30,7 @@ interface IPlayer extends shared.IArrayItem {
 
 // only variables
 interface IPlayerState {
+
   current: IPlayer;
   isPaid: bool;
   all: IPlayer [];
@@ -51,37 +52,20 @@ interface IPlayerService {
   playerByName(players:IPlayer[], name:string):IPlayer;
   latestVersion(players:IPlayer[]):string;
 
-  connect(gameId:string):IPlayerState;
+  connect(gameRef:fire.IRef):IPlayerState;
   disconnect(state:IPlayerState);
-  join(state:IPlayerState, name:string, avatar:string);
+  add(state:IPlayerState, player:IPlayer);
   killPlayer(state:IPlayerState, player:IPlayer, killerName:string);
   move(state:IPlayerState, player:IPlayer, direction:string);
   taunt(state:IPlayerState, player:IPlayer, taunt:string);
 
   current(state:IPlayerState):IPlayer;
+  newPlayer(name:string, avatar:string);
+
+  scoreWin(state:IPlayerState, player:IPlayer);
+  hasWinner(state:IPlayerState):IPlayer;
 }
 
-
-// Need a way to add type-class like functionality
-// Player behaves as an Object
-// This is the only way I can think of
-class Player implements IPlayer {
-  x:number;
-  y:number;
-  direction:string;
-  wins:number;
-  losses:number;
-  version:string;
-  name:string;
-  avatar:string;
-  taunt:string;
-  killer:string;
-  state:string;
-
-  toString():string {
-    return this.name + ": " + this.x + "," + this.y
-  }
-}
 
 angular.module('services')
 
@@ -95,22 +79,22 @@ angular.module('services')
     playerByName: playerByName,
     latestVersion: latestVersion,
 
+    scoreWin: scoreWin,
+    hasWinner: hasWinner,
+    newPlayer: newPlayer,
+
     connect: connect,
-    join: join,
+    add: add,
     killPlayer: killPlayer,
     move: move,
     taunt: taunt,
-    resetGame: resetGame,
     disconnect: disconnect,
     current: currentPlayer,
   }
 
-  function connect(gameId:string):IPlayerState {
-
-    var gameRef = FB.game(gameId)
+  function connect(gameRef:fire.IRef):IPlayerState {
     var playersRef = gameRef.child('players')
-
-    var sharedPlayers = SharedArray.bind(playersRef, Player)
+    var sharedPlayers = SharedArray.bind(playersRef)
 
     var state:IPlayerState = {
       myname:null,
@@ -118,27 +102,19 @@ angular.module('services')
       playersRef:playersRef,
 
       killed: new signals.Signal(),
-      gameOver: new signals.Signal(),
 
       current: null,
       sharedPlayers: sharedPlayers,
-      winner: null,
       isPaid: isPaid(),
       all: <IPlayer[]> sharedPlayers.value,
     }
-
-    state.boundOnWinner = FB.apply((n) => onWinner(state,n))
-
-    gameRef.child('winner').on('value', state.boundOnWinner)
 
     return state
   }
 
   function disconnect(state:IPlayerState) {
     SharedArray.unbind(state.sharedPlayers)
-    state.gameRef.child('winner').off('value', state.boundOnWinner)
     state.killed.dispose()
-    state.gameOver.dispose()
   }
 
   function isAlive(p:IPlayer):bool {
@@ -149,15 +125,8 @@ angular.module('services')
     return players.filter(isAlive)
   }
 
-  // you need to define the functions in here, so they have access to the state!
-  // hmm... how do I know which one is me?
-  // well, I should bind to a function instead
-  function join(state:IPlayerState, name:string, avatar:string) {
-
-    // strip baddies
+  function newPlayer(name:string, avatar:string) {
     name = Id.sanitize(name)
-
-    state.myname = name
 
     var player:IPlayer = {
       name: name,
@@ -172,46 +141,12 @@ angular.module('services')
       version: AppVersion,
     }
 
+    return player
+  }
+
+  function add(state:IPlayerState, player:IPlayer) {
+    state.myname = name
     SharedArray.push(state.playersRef, player)
-  }
-
-  function onWinner(state:IPlayerState, name:string) {
-
-    // ignore nulls
-    if (!name) {
-      state.winner = name
-      return
-    }
-
-    // ignore if it hasn't changed
-    if (name == state.winner) return
-
-    state.gameOver.dispatch(name)
-
-    state.winner = name
-
-    // Now EVERYONE resets the game together. Since we're all setting it to the same state, it's ok.
-    setTimeout(() => resetGame(state), 1000)
-    setTimeout(() => startGame(state), 2000)
-  }
-
-  // resets game, but does NOT make it playable
-  // only resets YOU. any players not paying attention don't get reset. they get REMOVED?
-  // at least we can make them be dead
-  function resetGame(state:IPlayerState) {
-    var current = currentPlayer(state)
-    current.x = Board.randomX()
-    current.y = Board.randomY()
-    current.direction = Board.DOWN
-    current.state = STATE.ALIVE
-    current.taunt = ""
-
-    SharedArray.set(state.playersRef, current)
-  }
-
-  // makes the game playable
-  function startGame(state:IPlayerState) {
-    state.gameRef.child('winner').remove()
   }
 
   // killPlayer ONLY happens from the current player's perspective. yOu can only kill yourself
@@ -222,22 +157,18 @@ angular.module('services')
     SharedArray.set(state.playersRef, player)
 
     // TODO when someone dies, check wins!
-    checkWin(state)
+    //checkWin(state)
   }
 
-  // EVERYONE sets winner / game state to over
-  // but only the winner can add his score if he's paying attention
-  function checkWin(state:IPlayerState) {
+  // returns winner or null
+  function hasWinner(state:IPlayerState):IPlayer {
     var alive = alivePlayers(state.all)
     if (alive.length > 1) return
-
     var winner = alive[0]
-    //if (state.current == null || winner != state.current) return
+    return winner
+  }
 
-    // Game is OVER, set the winner
-    state.gameRef.child("winner").removeOnDisconnect();
-    state.gameRef.child("winner").set(winner.name)
-
+  function scoreWin(state:IPlayerState, winner:IPlayer) {
     // only if it is ME, then give yourself a point and taunt
     if (winner.name == state.current.name) {
       winner.wins += 1

@@ -19,7 +19,7 @@ interface IMissile extends IDirectional {
 }
 
 interface IMissileService {
-  connect(gameId:string, players:IPlayerState):IMissileState;
+  connect(gameRef:fire.IRef, players:IPlayerState):IMissileState;
   disconnect(state:IMissileState);
   fireMissile(state:IMissileState, player:IPlayer);
 }
@@ -38,8 +38,8 @@ angular.module('services')
       fireMissile: fireMissile,
     }
 
-    function connect(gameId:string, players:IPlayerState):IMissileState {
-      var missilesRef = FB.game(gameId).child('missiles')
+    function connect(gameRef:fire.IRef, players:IPlayerState):IMissileState {
+      var missilesRef = gameRef.child('missiles')
 
       var all = []
       var shared = SharedArray.bind(missilesRef)

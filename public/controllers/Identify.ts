@@ -44,7 +44,7 @@ interface IdentifyRouteParams {
 }
 
 angular.module('controllers')
-.controller('IdentifyCtrl', function($scope: IdentifyScope, $location: ng.ILocationService, Players:IPlayerService, AppVersion: string, Auth:IAuth, $routeParams:IdentifyRouteParams, Id:IdService, Metrics:IMetrics) {
+.controller('IdentifyCtrl', function($scope: IdentifyScope, $location: ng.ILocationService, Players:IPlayerService, AppVersion: string, Auth:IAuth, $routeParams:IdentifyRouteParams, Id:IdService, Metrics:IMetrics, FB:IFirebaseService) {
 
     // HACKY way to do the transition
     $scope.intro = "intro"
@@ -76,7 +76,8 @@ angular.module('controllers')
     //console.log("GAME", $scope.gameId)
     //console.log("PLAYER", $scope.user.username)
 
-    var players = Players.connect($scope.gameId)
+    var gameRef = FB.game($scope.gameId)
+    var players = Players.connect(gameRef)
     $scope.players = players
 
     // available avatars
