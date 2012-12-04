@@ -13,7 +13,7 @@ angular.module('controllers')
   //$scope.person = so.value
 
   var sa = SharedArray.bind(FB.ref("/test/people"))
-  $scope.people = sa.value
+  $scope.people = sa
 
   $scope.addPerson = function() {
     SharedArray.push(sa.ref, {name:Id.randomId()})

@@ -28,12 +28,16 @@ interface IPlayer extends shared.IArrayItem {
   state:string;
 }
 
+interface ISharedPlayers {
+  [index: number]: IPlayer;
+}
+
 // only variables
 interface IPlayerState {
 
   current: IPlayer;
   isPaid: bool;
-  all: IPlayer [];
+  all: IPlayer[];
 
   // signals
   killed: signals.ISignal;
@@ -94,7 +98,7 @@ angular.module('services')
 
   function connect(gameRef:fire.IRef):IPlayerState {
     var playersRef = gameRef.child('players')
-    var sharedPlayers = SharedArray.bind(playersRef)
+    var sharedPlayers = <any> SharedArray.bind(playersRef)
 
     var state:IPlayerState = {
       myname:null,
@@ -106,7 +110,7 @@ angular.module('services')
       current: null,
       sharedPlayers: sharedPlayers,
       isPaid: isPaid(),
-      all: <IPlayer[]> sharedPlayers.value,
+      all: <IPlayer[]> sharedPlayers,
     }
 
     return state
@@ -146,7 +150,7 @@ angular.module('services')
 
   function add(state:IPlayerState, player:IPlayer) {
     state.myname = player.name
-    SharedArray.push(state.playersRef, player)
+    SharedArray.push(state.sharedPlayers.ref, player)
   }
 
   // killPlayer ONLY happens from the current player's perspective. yOu can only kill yourself

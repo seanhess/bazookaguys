@@ -42,13 +42,13 @@ angular.module('services')
       var missilesRef = gameRef.child('missiles')
 
       var all = []
-      var shared = SharedArray.bind(missilesRef)
+      var shared = <any> SharedArray.bind(missilesRef)
       var timer = setInterval(() => moveMissiles(state, players), MISSILE_DELAY)
 
       var state = {
         ref:missilesRef,
         shared:shared,
-        all: <IMissile[]> shared.value,
+        all: <IMissile[]> shared,
         timer: timer,
       }
 

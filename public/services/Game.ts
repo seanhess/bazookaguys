@@ -59,7 +59,7 @@ module Game {
         players:players,
         missiles:missiles,
         walls:[],
-        status: sharedStatus.value,
+        status: sharedStatus,
         sharedStatus: sharedStatus,
         gameRef: gameRef,
         gameOver: new signals.Signal(),

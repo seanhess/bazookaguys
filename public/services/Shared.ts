@@ -13,17 +13,15 @@
 module shared {
   export interface IObject {
     ref: fire.IRef;
-    value:any;
-    updating?:bool;
-    onValue?(snap:fire.ISnapshot);
+    onValue(snap:fire.ISnapshot);
   }
 
   export interface IArrayItem {
     name:string;
   }
 
-  export interface IArray extends IObject {
-    value:IArrayItem[];
+  export interface IArray {
+    ref: fire.IRef;
     onPushed?(snap:fire.ISnapshot);
     onChanged?(snap:fire.ISnapshot);
     onRemoved?(snap:fire.ISnapshot);
@@ -85,16 +83,21 @@ angular.module('services')
 
   function bind(ref:fire.IRef, type?:Function = Object):shared.IObject {
     var value = Object.create(type.prototype)
-    var so:shared.IObject = {ref: ref, value:value}
 
-    so.onValue = makeUpdate(function(value) {
-      if (!value) return objectEmpty(so.value)
-      _.extend(so.value, value)
+    // define non-enumerable properties
+    Object.defineProperty(value, "ref", {
+      value: ref
     })
 
-    // if null, then delete all properties
-    ref.on('value', so.onValue)
-    return so
+    Object.defineProperty(value, "onValue", {
+      value: makeUpdate(function(updates) {
+        // if null, then delete all properties
+        if (!updates) return objectEmpty(value)
+        _.extend(value, updates)
+      })
+    })
+
+    return value
   }
 
   function unbind(so:shared.IObject) {
@@ -190,23 +193,27 @@ angular.module('services')
   }
 
   function bind(ref:fire.IRef, type?:Function = Object):shared.IArray {
-    var sa:shared.IArray = {ref: ref, value:[]}
+    //var sa:shared.IArray = {ref: ref, value:[]}
+    var array = []
+    var sa:shared.IArray = <any> array
+
+    sa.ref = ref
 
     sa.onPushed = SharedObject.makeUpdate(function(value) {
       var obj = Object.create(type.prototype)
       SharedObject.objectExtend(obj, value)
-      sa.value.push(obj)
+      array.push(obj)
     })
 
     sa.onChanged = SharedObject.makeUpdate(function(value) {
-      var obj = _.find(sa.value, byName(value.name))
+      var obj = _.find(array, byName(value.name))
       SharedObject.objectExtend(obj, value)
     })
 
     sa.onRemoved = SharedObject.makeUpdate(function(value) {
-      var index = indexOf(sa.value, byName(value.name))
+      var index = indexOf(array, byName(value.name))
       if (index < 0) return
-      sa.value.splice(index, 1)
+      array.splice(index, 1)
     })
 
     ref.on('child_added', sa.onPushed)
@@ -216,10 +223,10 @@ angular.module('services')
     return sa
   }
 
-  function unbind(sa:shared.IArray) {
-    sa.ref.off('child_added', sa.onPushed)
-    sa.ref.off('child_changed', sa.onChanged)
-    sa.ref.off('child_removed', sa.onRemoved)
+  function unbind(array:shared.IArray) {
+    array.ref.off('child_added', array.onPushed)
+    array.ref.off('child_changed', array.onChanged)
+    array.ref.off('child_removed', array.onRemoved)
   }
 
   function push(arrayRef:fire.IRef, item:shared.IArrayItem) {
