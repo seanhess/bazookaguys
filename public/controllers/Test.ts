@@ -28,6 +28,6 @@ angular.module('controllers')
   }
 
   $scope.save = function(person) {
-    SharedArray.update(sa.ref, person, ["age"])
+    SharedArray.set(sa.ref, person, ["age"])
   }
 })

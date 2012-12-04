@@ -28,12 +28,16 @@ module shared {
   }
 
   export interface ObjectService {
+
+    // public
     bind(ref:fire.IRef, type?:Function):IObject;
     unbind(so:IObject);
-    set(ref:fire.IRef, value:any, shouldIgnoreServer?:bool);
-    update(ref:fire.IRef, object:any, properties:string[]);
-    makeUpdate(f:fire.IValueCB):fire.ISnapshotCB;
+    set(so:IObject, properties?:string[]);
 
+
+    // private
+    setRef(ref:fire.IRef, value:any, properties?:string[]);
+    makeUpdate(f:fire.IValueCB):fire.ISnapshotCB;
     objectEmpty(obj:any);
     //objectReplace(dest:any, source:any);
     objectExtend(dest:any, source:any);
@@ -42,10 +46,9 @@ module shared {
   export interface ArrayService {
     bind(ref:fire.IRef, type?:Function):IArray;
     unbind(so:IArray);
+    set(arrayRef:fire.IRef, item:IArrayItem, properties?:string[]);
     push(arrayRef:fire.IRef, item:IArrayItem);
     remove(arrayRef:fire.IRef, item:IArrayItem);
-    set(arrayRef:fire.IRef, item:IArrayItem);
-    update(arrayRef:fire.IRef, object:any, properties:string[]);
   }
 }
 
@@ -62,18 +65,17 @@ module shared {
 
 
 
+// one syntax to rule them all
+// sharedObject.save(properties?)
 
 
 angular.module('services')
 .factory('SharedObject', function($rootScope:ng.IScope, FB:IFirebaseService):shared.ObjectService {
 
-  // whether we are currently responsible for an update and should ignore any changes to the remote object
-  var updating = false
-
   return {
     bind:bind,
     unbind:unbind,
-    update:update,
+    setRef:setRef,
     set:set,
     makeUpdate:makeUpdate,
     objectEmpty:objectEmpty,
@@ -82,19 +84,17 @@ angular.module('services')
   }
 
   function bind(ref:fire.IRef, type?:Function = Object):shared.IObject {
-    var value = Object.create(type.prototype)
-
-    // define non-enumerable properties
-    Object.defineProperty(value, "ref", {
-      value: ref
-    })
-
-    Object.defineProperty(value, "onValue", {
-      value: makeUpdate(function(updates) {
-        // if null, then delete all properties
-        if (!updates) return objectEmpty(value)
-        _.extend(value, updates)
-      })
+    var value = Object.create(type.prototype, {
+      ref: { 
+        value: ref 
+      },
+      onValue: {
+        value: makeUpdate(function(updates) {
+          // if null, then delete all properties
+          if (!updates) return objectEmpty(value)
+          _.extend(value, updates)
+        })
+      },
     })
 
     return value
@@ -104,40 +104,30 @@ angular.module('services')
     so.ref.off('value', so.onValue)
   }
 
-  // this will need to know the type, no?
-  // so that when people come back with updates we can update it!
-  // only work on shared objects! not shared arrays!
-  // or ALWAYS have them be updates?
-  // under what conditions would you want to REPLACE them?
-  // um... never?
-  function set(ref:fire.IRef, object:any, shouldIgnoreServer?:bool = true) {
-
-    // need to clean up the object. Make sure all keys are defined, and there are no $$hashKeys and the like
-    var updates = {}
-    Object.keys(object).forEach(function(key) {
-      if (typeof object[key] !== "undefined" && !key.match(/^\$/))
-        updates[key] = object[key]
-    })
-
-    if (!shouldIgnoreServer) 
-      return ref.set(updates)
-
-    ignoreServer(function() {
-      ref.set(updates)
-    })
+  function set(so:shared.IObject) {
+    setRef(so.ref, so)
   }
 
-  function update(ref:fire.IRef, object:any, properties:string[]) {
+  function setRef(ref:fire.IRef, object:any, properties?:string[]) {
+
+    if (properties) return updateRef(ref, object, properties)
+
+    var keys = Object.keys(object).filter(function(key) {
+      return (typeof object[key] !== "undefined" && !key.match(/^\$/))
+    })
+
+    var updates = _.pick.apply(null, [object].concat(keys))
+    return ref.set(updates)
+  }
+
+  function updateRef(ref:fire.IRef, object:any, properties:string[]) {
     var updates = _.pick.apply(null, [object].concat(properties))
-    ignoreServer(function() {
-      ref.update(updates)
-    })
+    ref.update(updates)
   }
-
 
   function makeUpdate(f:fire.IValueCB):fire.ISnapshotCB {
     return function(snap:fire.ISnapshot) {
-      if (updating) return
+      //if (updating) return
       //console.log("UPDATING", JSON.stringify(snap.val()))
       if ((<any>$rootScope).$$phase)
         return f(snap.val())
@@ -148,11 +138,11 @@ angular.module('services')
     }
   }
 
-  function ignoreServer(f:Function) {
-    updating = true
-    f()
-    updating = false
-  }
+  //function ignoreServer(f:Function) {
+    //updating = true
+    //f()
+    //updating = false
+  //}
 
 
 
@@ -189,7 +179,6 @@ angular.module('services')
     push: push,
     remove: remove,
     set: set,
-    update: update,
   }
 
   function bind(ref:fire.IRef, type?:Function = Object):shared.IArray {
@@ -232,7 +221,7 @@ angular.module('services')
   function push(arrayRef:fire.IRef, item:shared.IArrayItem) {
     var ref = arrayRef.child(item.name)
     ref.removeOnDisconnect()
-    SharedObject.set(ref, item, false)
+    SharedObject.setRef(ref, item)
   }
 
   function remove(arrayRef:fire.IRef, item:shared.IArrayItem) {
@@ -240,25 +229,9 @@ angular.module('services')
   }
 
   // like set, call this if you already know you've updated locally
-  function set(arrayRef:fire.IRef, item:shared.IArrayItem) {
-    SharedObject.set(arrayRef.child(item.name), item)
+  function set(arrayRef:fire.IRef, item:shared.IArrayItem, properties?:string[]) {
+    SharedObject.setRef(arrayRef.child(item.name), item, properties)
   }
-
-  // you lose type checking on the property list, but you do that anyway
-  // even with an object, because there is no support for generics
-  function update(arrayRef:fire.IRef, item:shared.IArrayItem, properties:string[]) {
-
-    // NOTE: if name doesn't exit, it will create a new node with no .name!
-
-    SharedObject.update(arrayRef.child(item.name), item, properties)
-    //set(arrayRef.child(item.name), {})
-  }
-
-
-
-
-
-
 
 
 

@@ -10,7 +10,7 @@ module Game {
 
 
   // the actual shared game status
-  export interface IStatus {
+  export interface IStatus extends shared.IObject {
     winner: string;
     started: bool;
   }
@@ -18,7 +18,6 @@ module Game {
   export interface IState {
 
     status: IStatus;
-    sharedStatus: shared.IObject;
 
     players: IPlayerState;
     missiles: IMissileState;
@@ -53,14 +52,12 @@ module Game {
       // start the game timer
 
       var timer = setInterval(() => this.onTimer(state), GAME_TIMER_DELAY)
-      var sharedStatus = this.SharedObject.bind(statusRef)
 
       var state:Game.IState = {
         players:players,
         missiles:missiles,
         walls:[],
-        status: sharedStatus,
-        sharedStatus: sharedStatus,
+        status: this.SharedObject.bind(statusRef),
         gameRef: gameRef,
         gameOver: new signals.Signal(),
         timer: timer,
@@ -104,7 +101,7 @@ module Game {
       game.status.winner = ""
       game.walls.push("Cheese")
       //game.gameRef.child('winner').remove()
-      this.SharedObject.set(game.sharedStatus.ref, game.status)
+      this.SharedObject.set(game.status)
     }
 
     join(state:Game.IState, player:IPlayer) {

@@ -192,17 +192,17 @@ angular.module('services')
     player.y = position.y
     player.direction = position.direction
 
-    SharedArray.update(state.playersRef, player, ["x","y", "direction"])
+    SharedArray.set(state.playersRef, player, ["x","y", "direction"])
   }
 
   // taunt, then make it go away in 5 seconds
   function taunt(state:IPlayerState, player:IPlayer, taunt:string) {
     if (!taunt || !taunt.match(/\w/)) return
     player.taunt = taunt
-    SharedArray.update(state.playersRef, player, ["taunt"])
+    SharedArray.set(state.playersRef, player, ["taunt"])
     setTimeout(function() {
         player.taunt = ""
-        SharedArray.update(state.playersRef, player, ["taunt"])
+        SharedArray.set(state.playersRef, player, ["taunt"])
     }, 3000)
   }
   
