@@ -45,7 +45,7 @@ interface IPlayerState {
   // private stuff. not for binding
   myname:string;
   playersRef:fire.IRef;
-  sharedPlayers:shared.IArray;
+  shared:shared.IArray;
 }
 
 // only methods
@@ -108,7 +108,7 @@ angular.module('services')
       killed: new signals.Signal(),
 
       current: null,
-      sharedPlayers: sharedPlayers,
+      shared: sharedPlayers,
       isPaid: isPaid(),
       all: <IPlayer[]> sharedPlayers,
     }
@@ -117,7 +117,7 @@ angular.module('services')
   }
 
   function disconnect(state:IPlayerState) {
-    SharedArray.unbind(state.sharedPlayers)
+    SharedArray.unbind(state.shared)
     state.killed.dispose()
   }
 
@@ -150,7 +150,7 @@ angular.module('services')
 
   function add(state:IPlayerState, player:IPlayer) {
     state.myname = player.name
-    SharedArray.push(state.sharedPlayers.ref, player)
+    SharedArray.push(state.shared, player)
   }
 
   // killPlayer ONLY happens from the current player's perspective. yOu can only kill yourself
@@ -158,7 +158,7 @@ angular.module('services')
     player.state = STATE.DEAD
     player.losses += 1
     player.killer = killerName
-    SharedArray.set(state.playersRef, player)
+    SharedArray.set(state.shared, player)
 
     // TODO when someone dies, check wins!
     //checkWin(state)
@@ -192,17 +192,17 @@ angular.module('services')
     player.y = position.y
     player.direction = position.direction
 
-    SharedArray.set(state.playersRef, player, ["x","y", "direction"])
+    SharedArray.set(state.shared, player, ["x","y", "direction"])
   }
 
   // taunt, then make it go away in 5 seconds
   function taunt(state:IPlayerState, player:IPlayer, taunt:string) {
     if (!taunt || !taunt.match(/\w/)) return
     player.taunt = taunt
-    SharedArray.set(state.playersRef, player, ["taunt"])
+    SharedArray.set(state.shared, player, ["taunt"])
     setTimeout(function() {
         player.taunt = ""
-        SharedArray.set(state.playersRef, player, ["taunt"])
+        SharedArray.set(state.shared, player, ["taunt"])
     }, 3000)
   }
   

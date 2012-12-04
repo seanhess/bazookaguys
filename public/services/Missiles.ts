@@ -73,7 +73,7 @@ angular.module('services')
         name: player.name
       }
 
-      SharedArray.push(state.ref, missile)
+      SharedArray.push(state.shared, missile)
     }
 
     // everyone moves all missiles
@@ -119,7 +119,7 @@ angular.module('services')
     function explodeMissile(state:IMissileState, missile:IMissile) {
       var idx = state.all.indexOf(missile)
       if (idx != -1) state.all.splice(idx,1)
-      SharedArray.remove(state.ref, missile)
+      SharedArray.remove(state.shared, missile)
     }
 
     function missileByPlayerName(missiles:IMissile[], name:string) {

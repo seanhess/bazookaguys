@@ -16,11 +16,11 @@ angular.module('controllers')
   $scope.people = sa
 
   $scope.addPerson = function() {
-    SharedArray.push(sa.ref, {name:Id.randomId()})
+    SharedArray.push(sa, {name:Id.randomId()})
   }
 
   $scope.remove = function(person) {
-    SharedArray.remove(sa.ref, person)
+    SharedArray.remove(sa, person)
   }
 
   $scope.select = function(person) {
@@ -28,6 +28,6 @@ angular.module('controllers')
   }
 
   $scope.save = function(person) {
-    SharedArray.set(sa.ref, person, ["age"])
+    SharedArray.set(sa, person, ["age"])
   }
 })
