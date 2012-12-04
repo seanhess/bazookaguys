@@ -43,7 +43,7 @@ module fire {
   // plus: you can define all the typing inline
   // minus: you have to use "this" for all dependencies
   // minus: can lose this pointer
-  // minus: you should be using an interface type, so you have to define the interface twice anyway
+  // xxxxx: you should be using an interface type, so you have to define the interface twice anyway (EXCEPT, you don't need to do that right away, not until you test, and you don't test anyway!) (Typing is REPLACING your tests)
 
   export class FB implements IFirebaseService{
 

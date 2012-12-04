@@ -145,7 +145,7 @@ angular.module('services')
   }
 
   function add(state:IPlayerState, player:IPlayer) {
-    state.myname = name
+    state.myname = player.name
     SharedArray.push(state.playersRef, player)
   }
 
@@ -178,8 +178,6 @@ angular.module('services')
   }
 
   function move(state:IPlayerState, player:IPlayer, direction:string) {
-    console.log("MOVE", player, player.toString())
-
     var position = Board.move(player, direction)
     if (!position) return
       
