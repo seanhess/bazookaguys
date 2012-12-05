@@ -63,6 +63,7 @@ interface IPlayerService {
 
   current(state:IPlayerState):IPlayer;
   newPlayer(name:string, avatar:string);
+  resetPlayer(state:IPlayerState, player:IPlayer);
 
   scoreWin(state:IPlayerState, player:IPlayer);
   hasWinner(state:IPlayerState):IPlayer;
@@ -92,6 +93,7 @@ angular.module('services')
     taunt: taunt,
     disconnect: disconnect,
     current: currentPlayer,
+    resetPlayer: resetPlayer,
   }
 
   function connect(gameRef:fire.IRef):IPlayerState {
@@ -143,6 +145,15 @@ angular.module('services')
     }
 
     return player
+  }
+
+  function resetPlayer(state:IPlayerState, player:IPlayer) {
+    player.x = Board.randomX()
+    player.y = Board.randomY()
+    player.direction = Board.DOWN
+    player.state = STATE.ALIVE
+    player.taunt = ""
+    SharedArray.set(<any>state.all, player)
   }
 
   function add(state:IPlayerState, player:IPlayer) {

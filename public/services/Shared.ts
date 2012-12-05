@@ -15,6 +15,7 @@ module shared {
   export interface IObject {
     ref: fire.IRef;
     onValue(snap:fire.ISnapshot);
+    updated:signals.ISignal;
   }
 
   export interface IArrayItem {
@@ -120,10 +121,14 @@ module shared {
         value: makeUpdate($rootScope, function(updates) {
           console.log("On Value", updates)
           // if null, then delete all properties
-          if (!updates) return objectEmpty(value)
-          _.extend(value, updates)
+          if (!updates) objectEmpty(value)
+          else _.extend(value, updates)
+
+          value.updated.dispatch(value)
         })
       })
+
+      Object.defineProperty(value, "updated", {value: new signals.Signal()})
 
       ref.on('value', value.onValue)
 
@@ -132,6 +137,7 @@ module shared {
 
     function unbind(so:IObject) {
       so.ref.off('value', so.onValue)
+      so.updated.dispose()
     }
 
     function set(so:IObject) {

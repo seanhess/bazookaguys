@@ -46,6 +46,10 @@ module Game {
       var players = this.Players.connect(gameRef)
       var missiles = this.Missiles.connect(gameRef, players)
 
+
+      var status = this.SharedObject.bind(statusRef)
+      status.updated.add(() => this.onStatus(state))
+
       // start the game timer
       var timer = setInterval(() => this.onTimer(state), GAME_TIMER_DELAY)
 
@@ -56,10 +60,10 @@ module Game {
         players:players,
         missiles:missiles,
         walls:[],
-        status: this.SharedObject.bind(statusRef),
         gameRef: gameRef,
         gameOver: new signals.Signal(),
         timer: timer,
+        status: <any> status,
       }
 
       return state
@@ -80,8 +84,6 @@ module Game {
       if (this.isFirstPlayer(game) && !this.isGameStarted(game)) {
         this.startGame(game)
       }
-
-      console.log("WINNER", game.status)
     }
 
     isGameStarted(game:Game.IState) {
@@ -107,39 +109,28 @@ module Game {
       this.Players.add(state.players, player)
     }
 
+    onStatus(game:Game.IState) {
+      if (game.status.winner)
+        this.onWinner(game)
+    }
+
     // NEEDS to fire any time winner updates!
     // how do I know?
-    onWinner(game:Game.IState, name:string) {
+    onWinner(game:Game.IState) {
 
-      // ignore nulls
-      if (!name) {
-        game.status.winner = name
-        return
-      }
-
-      // ignore if it hasn't changed
-      if (name == game.status.winner) return
-
-      //game.gameOver.dispatch(name)
-      game.status.winner = name
+      game.gameOver.dispatch(game.status.winner)
 
       // Now EVERYONE resets the game together. Since we're all setting it to the same state, it's ok.
       setTimeout(() => this.resetGame(game), 1000)
-      setTimeout(() => this.startGame(game), 2000)
+      setTimeout(() => this.startGame(game), 2000) // ummmmm need to change with da wallz
     }
 
     // resets game, but does NOT make it playable
     // only resets YOU. any players not paying attention don't get reset. they get REMOVED?
     // at least we can make them be dead
     resetGame(game:Game.IState) {
-      //var current = currentPlayer(state)
-      //current.x = Board.randomX()
-      //current.y = Board.randomY()
-      //current.direction = Board.DOWN
-      //current.state = STATE.ALIVE
-      //current.taunt = ""
-
-      //SharedArray.set(state.playersRef, current)
+      var current = this.Players.current(game.players)
+      this.Players.resetPlayer(game.players, current)
     }
 
     checkWin(game:Game.IState) {
@@ -148,8 +139,6 @@ module Game {
 
       game.status.winner = winner.name
       this.SharedObject.set(game.status)
-
-      game.gameOver.dispatch(winner.name)
 
       this.Players.scoreWin(game.players, winner)
     }

@@ -19,7 +19,7 @@ interface GameRouteParams {
 }
 
 angular.module('controllers')
-.controller('GameCtrl', function ($scope, Players:IPlayerService, Missiles:IMissileService, $routeParams:GameRouteParams, $location, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string, Metrics:IMetrics, Game) {
+.controller('GameCtrl', function ($scope, Players:IPlayerService, Missiles:IMissileService, $routeParams:GameRouteParams, $location, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string, Metrics:IMetrics, Game:Game.Service) {
 
   $scope.version = AppVersion
   $scope.gameId = $routeParams.gameId
@@ -105,7 +105,7 @@ angular.module('controllers')
 
     // you can do ANYTHING if you are dead, or if the game is currently OVER
     if (!Players.isAlive(current)) return
-    if (game.winner) return
+    if (game.status.winner) return
 
     if (e.keyCode === SPACE)
       return Missiles.fireMissile(game.missiles, current)
