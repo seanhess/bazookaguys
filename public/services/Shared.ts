@@ -119,7 +119,6 @@ module shared {
       Object.defineProperty(value, "ref", {value:ref})
       Object.defineProperty(value, "onValue", {
         value: makeUpdate($rootScope, function(updates) {
-          console.log("On Value", updates)
           // if null, then delete all properties
           if (!updates) objectEmpty(value)
           else _.extend(value, updates)

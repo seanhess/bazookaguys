@@ -58,7 +58,7 @@ angular.module('controllers')
   //})
 
   game.gameOver.add(function(winner:string) {
-    Metrics.gameOver($scope.gameId, winner, game.players.all.length)
+    Metrics.gameOver($scope.gameId, name, winner, game.players.all.length)
   })
 
   $scope.$on("amissile", function(e, player) {
