@@ -153,38 +153,43 @@ module shared {
 
     function bind(ref:fire.IRef, type?:Function = Object):IArray {
 
-      // Create something that extends Array
-      var proto = Object.create(Array.prototype)
-
-      proto.onPushed = makeUpdate($rootScope, function(value) {
-        var obj = Object.create(type.prototype)
-        objectExtend(obj, value)
-        array.push(obj)
-      })
-
-
-      proto.onChanged = makeUpdate($rootScope, function(value) {
-        var obj = _.find(array, byName(value.name))
-        objectExtend(obj, value)
-      })
-
-      proto.onRemoved = makeUpdate($rootScope, function(value) {
-        var index = indexOf(array, byName(value.name))
-        if (index < 0) return
-        array.splice(index, 1)
-      })
-
-      var array = Object.create(proto)
+      // We need to extend array here, which is tricky. We'll use defineProperty to make non-enumerable properties
+      var array = []
       var sa:IArray = <any> array
 
       // ref is contextual, needs to be set here with define property
       Object.defineProperty(sa, "ref", {value:ref})
 
-      console.log("CHARLIE", sa, array)
+      // the rest are just methods
+      Object.defineProperty(sa, "onPushed", {
+        value: makeUpdate($rootScope, function(value) {
+          var obj = Object.create(type.prototype)
+          objectExtend(obj, value)
+          array.push(obj)
+        })
+      })
+
+      Object.defineProperty(sa, "onChanged", {
+        value: makeUpdate($rootScope, function(value) {
+          var obj = _.find(array, byName(value.name))
+          objectExtend(obj, value)
+        })
+      })
+
+      Object.defineProperty(sa, "onRemoved", {
+        value: makeUpdate($rootScope, function(value) {
+          var index = indexOf(array, byName(value.name))
+          if (index < 0) return
+          array.splice(index, 1)
+        })
+      })
 
       ref.on('child_added', sa.onPushed)
       ref.on('child_changed', sa.onChanged)
       ref.on('child_removed', sa.onRemoved)
+
+      console.log(array)
+      console.log(sa)
 
       return sa
     }
