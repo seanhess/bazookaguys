@@ -113,18 +113,19 @@ module shared {
     }
 
     function bind(ref:fire.IRef, type?:Function = Object):IObject {
-      var value = Object.create(type.prototype, {
-        ref: { 
-          value: ref 
-        },
-        onValue: {
-          value: makeUpdate($rootScope, function(updates) {
-            // if null, then delete all properties
-            if (!updates) return objectEmpty(value)
-            _.extend(value, updates)
-          })
-        },
+      var value = Object.create(type.prototype)
+
+      Object.defineProperty(value, "ref", {value:ref})
+      Object.defineProperty(value, "onValue", {
+        value: makeUpdate($rootScope, function(updates) {
+          console.log("On Value", updates)
+          // if null, then delete all properties
+          if (!updates) return objectEmpty(value)
+          _.extend(value, updates)
+        })
       })
+
+      ref.on('value', value.onValue)
 
       return value
     }
@@ -187,9 +188,6 @@ module shared {
       ref.on('child_added', sa.onPushed)
       ref.on('child_changed', sa.onChanged)
       ref.on('child_removed', sa.onRemoved)
-
-      console.log(array)
-      console.log(sa)
 
       return sa
     }

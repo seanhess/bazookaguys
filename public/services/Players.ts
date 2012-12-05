@@ -39,8 +39,7 @@ interface IPlayerState {
   isPaid: bool;
   all: IPlayer[];
 
-  // signals
-  killed: signals.ISignal;
+  currentKilled: signals.ISignal;
 
   // private stuff. not for binding
   myname:string;
@@ -104,7 +103,7 @@ angular.module('services')
       gameRef:gameRef,
       playersRef:playersRef,
 
-      killed: new signals.Signal(),
+      currentKilled: new signals.Signal(),
 
       current: null,
       isPaid: isPaid(),
@@ -116,7 +115,7 @@ angular.module('services')
 
   function disconnect(state:IPlayerState) {
     SharedArray.unbind(<any>state.all)
-    state.killed.dispose()
+    state.currentKilled.dispose()
   }
 
   function isAlive(p:IPlayer):bool {
@@ -160,8 +159,7 @@ angular.module('services')
     player.killer = killerName
     SharedArray.set(<any>state.all, player)
 
-    // TODO when someone dies, check wins!
-    //checkWin(state)
+    state.currentKilled.dispatch(player, killerName)
   }
 
   // returns winner or null

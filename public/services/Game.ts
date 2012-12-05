@@ -46,12 +46,11 @@ module Game {
       var players = this.Players.connect(gameRef)
       var missiles = this.Missiles.connect(gameRef, players)
 
-      //state.boundOnWinner = FB.apply((n) => onWinner(state,n))
-      //gameRef.child('winner').on('value', state.boundOnWinner)
-
       // start the game timer
-
       var timer = setInterval(() => this.onTimer(state), GAME_TIMER_DELAY)
+
+      // observe
+      players.currentKilled.add(() => this.checkWin(state))
 
       var state:Game.IState = {
         players:players,
@@ -75,19 +74,15 @@ module Game {
     }
 
     // the main game timer
-    onTimer(state:Game.IState) {
+    onTimer(game:Game.IState) {
 
       // I want to know if there are NO walls
-
-      if (this.isFirstPlayer(state) && !this.isGameStarted(state)) {
-        this.startGame(state)
+      if (this.isFirstPlayer(game) && !this.isGameStarted(game)) {
+        this.startGame(game)
       }
 
-      //console.log("TEST", state.missiles.all)
+      console.log("WINNER", game.status)
     }
-
-    // the game timer! If there is only one player, and the game is OFF, then start the game and the walls
-    // there will only be one player once.
 
     isGameStarted(game:Game.IState) {
       return (game.walls.length)
@@ -98,12 +93,13 @@ module Game {
     }
 
     startGame(game:Game.IState) {
-      console.log("START GAME")
       game.status.started = true
       game.status.winner = ""
-      game.walls.push("Cheese")
-      //game.gameRef.child('winner').remove()
       this.SharedObject.set(game.status)
+
+      game.walls.push("cheese") // to prevent it from re-starting over and over
+      //this.SharedArray.push(game.walls, "Cheese")
+      //game.gameRef.child('winner').remove()
     }
 
     join(state:Game.IState, player:IPlayer) {
@@ -111,6 +107,8 @@ module Game {
       this.Players.add(state.players, player)
     }
 
+    // NEEDS to fire any time winner updates!
+    // how do I know?
     onWinner(game:Game.IState, name:string) {
 
       // ignore nulls
@@ -122,8 +120,7 @@ module Game {
       // ignore if it hasn't changed
       if (name == game.status.winner) return
 
-      game.gameOver.dispatch(name)
-
+      //game.gameOver.dispatch(name)
       game.status.winner = name
 
       // Now EVERYONE resets the game together. Since we're all setting it to the same state, it's ok.
@@ -149,8 +146,10 @@ module Game {
       var winner = this.Players.hasWinner(game.players)
       if (!winner) return
 
-      game.gameRef.child("winner").removeOnDisconnect();
-      game.gameRef.child("winner").set(winner.name)
+      game.status.winner = winner.name
+      this.SharedObject.set(game.status)
+
+      game.gameOver.dispatch(winner.name)
 
       this.Players.scoreWin(game.players, winner)
     }

@@ -44,6 +44,7 @@ angular.module('controllers')
   Game.join(game, player)
   Metrics.join($scope.gameId, name, avatar)
 
+  $scope.status = game.status
   $scope.players = game.players
   $scope.missiles = game.missiles
   $scope.walls = game.walls
