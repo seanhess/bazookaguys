@@ -10,7 +10,6 @@ interface IMissileState {
 
   // private stuff
   ref:fire.IRef;
-  shared:shared.IArray;
   timer:number;
 }
 
@@ -47,7 +46,6 @@ angular.module('services')
 
       var state = {
         ref:missilesRef,
-        shared:shared,
         all: <IMissile[]> shared,
         timer: timer,
       }
@@ -56,7 +54,7 @@ angular.module('services')
     }
 
     function disconnect(state:IMissileState) {
-      SharedArray.unbind(state.shared)
+      SharedArray.unbind(<any>state.all)
       clearInterval(state.timer)
     }
 
@@ -73,7 +71,7 @@ angular.module('services')
         name: player.name
       }
 
-      SharedArray.push(state.shared, missile)
+      SharedArray.push(<any>state.all, missile)
     }
 
     // everyone moves all missiles
@@ -119,7 +117,7 @@ angular.module('services')
     function explodeMissile(state:IMissileState, missile:IMissile) {
       var idx = state.all.indexOf(missile)
       if (idx != -1) state.all.splice(idx,1)
-      SharedArray.remove(state.shared, missile)
+      SharedArray.remove(<any>state.all, missile)
     }
 
     function missileByPlayerName(missiles:IMissile[], name:string) {

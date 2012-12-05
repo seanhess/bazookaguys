@@ -45,7 +45,6 @@ interface IPlayerState {
   // private stuff. not for binding
   myname:string;
   playersRef:fire.IRef;
-  shared:shared.IArray;
 }
 
 // only methods
@@ -98,7 +97,7 @@ angular.module('services')
 
   function connect(gameRef:fire.IRef):IPlayerState {
     var playersRef = gameRef.child('players')
-    var sharedPlayers = <any> SharedArray.bind(playersRef)
+    var sharedPlayers = SharedArray.bind(playersRef)
 
     var state:IPlayerState = {
       myname:null,
@@ -108,16 +107,15 @@ angular.module('services')
       killed: new signals.Signal(),
 
       current: null,
-      shared: sharedPlayers,
       isPaid: isPaid(),
-      all: <IPlayer[]> sharedPlayers,
+      all: <IPlayer[]> <any> sharedPlayers,
     }
 
     return state
   }
 
   function disconnect(state:IPlayerState) {
-    SharedArray.unbind(state.shared)
+    SharedArray.unbind(<any>state.all)
     state.killed.dispose()
   }
 
@@ -150,15 +148,16 @@ angular.module('services')
 
   function add(state:IPlayerState, player:IPlayer) {
     state.myname = player.name
-    SharedArray.push(state.shared, player)
+    SharedArray.push(<any>state.all, player)
   }
+
 
   // killPlayer ONLY happens from the current player's perspective. yOu can only kill yourself
   function killPlayer(state:IPlayerState, player:IPlayer, killerName:string) {
     player.state = STATE.DEAD
     player.losses += 1
     player.killer = killerName
-    SharedArray.set(state.shared, player)
+    SharedArray.set(<any>state.all, player)
 
     // TODO when someone dies, check wins!
     //checkWin(state)
@@ -192,17 +191,17 @@ angular.module('services')
     player.y = position.y
     player.direction = position.direction
 
-    SharedArray.set(state.shared, player, ["x","y", "direction"])
+    SharedArray.set(<any>state.all, player, ["x","y", "direction"])
   }
 
   // taunt, then make it go away in 5 seconds
   function taunt(state:IPlayerState, player:IPlayer, taunt:string) {
     if (!taunt || !taunt.match(/\w/)) return
     player.taunt = taunt
-    SharedArray.set(state.shared, player, ["taunt"])
+    SharedArray.set(<any>state.all, player, ["taunt"])
     setTimeout(function() {
         player.taunt = ""
-        SharedArray.set(state.shared, player, ["taunt"])
+        SharedArray.set(<any>state.all, player, ["taunt"])
     }, 3000)
   }
   
