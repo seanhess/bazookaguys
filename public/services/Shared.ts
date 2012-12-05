@@ -7,6 +7,7 @@
 ///<reference path="../def/angular.d.ts"/>
 ///<reference path="./FB"/>
 ///<reference path="../def/underscore.d.ts"/>
+///<reference path="../def/signals.d.ts"/>
 
 // I don't like that I have to use "name", but whatever
 
@@ -25,6 +26,10 @@ module shared {
     onPushed?(snap:fire.ISnapshot);
     onChanged?(snap:fire.ISnapshot);
     onRemoved?(snap:fire.ISnapshot);
+
+    pushed:signals.ISignal;
+    updated:signals.ISignal;
+    removed:signals.ISignal;
   }
 
   export interface ObjectService {
@@ -147,28 +152,35 @@ module shared {
     }
 
     function bind(ref:fire.IRef, type?:Function = Object):IArray {
-      //var sa:IArray = {ref: ref, value:[]}
-      var array = []
-      var sa:IArray = <any> array
 
-      sa.ref = ref
+      // Create something that extends Array
+      var proto = Object.create(Array.prototype)
 
-      sa.onPushed = makeUpdate($rootScope, function(value) {
+      proto.onPushed = makeUpdate($rootScope, function(value) {
         var obj = Object.create(type.prototype)
         objectExtend(obj, value)
         array.push(obj)
       })
 
-      sa.onChanged = makeUpdate($rootScope, function(value) {
+
+      proto.onChanged = makeUpdate($rootScope, function(value) {
         var obj = _.find(array, byName(value.name))
         objectExtend(obj, value)
       })
 
-      sa.onRemoved = makeUpdate($rootScope, function(value) {
+      proto.onRemoved = makeUpdate($rootScope, function(value) {
         var index = indexOf(array, byName(value.name))
         if (index < 0) return
         array.splice(index, 1)
       })
+
+      var array = Object.create(proto)
+      var sa:IArray = <any> array
+
+      // ref is contextual, needs to be set here with define property
+      Object.defineProperty(sa, "ref", {value:ref})
+
+      console.log("CHARLIE", sa, array)
 
       ref.on('child_added', sa.onPushed)
       ref.on('child_changed', sa.onChanged)

@@ -82,6 +82,8 @@ module Game {
       if (this.isFirstPlayer(state) && !this.isGameStarted(state)) {
         this.startGame(state)
       }
+
+      //console.log("TEST", state.missiles.all)
     }
 
     // the game timer! If there is only one player, and the game is OFF, then start the game and the walls

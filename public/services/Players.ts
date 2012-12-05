@@ -151,8 +151,9 @@ angular.module('services')
     SharedArray.push(<any>state.all, player)
   }
 
+  // events. still need an update event, etc
 
-  // killPlayer ONLY happens from the current player's perspective. yOu can only kill yourself
+  // This ONLY is called by the killer
   function killPlayer(state:IPlayerState, player:IPlayer, killerName:string) {
     player.state = STATE.DEAD
     player.losses += 1

@@ -5,11 +5,6 @@ import request = module('request')
 
 var OAuth = require('oauth').OAuth
 
-// TODO drop sessions by passing EVERYTHING through the url
-// when you redirect back to your site you can grab EVERYTHING and store it in local storage! wahoo!
-
-// TODO make it know which server it is on in the redirect url
-
 interface SessionRequest extends express.ServerRequest {
   session:Session;
 }
