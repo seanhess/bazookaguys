@@ -16,6 +16,7 @@ module fire {
   export interface IRef {
     child(name:string);
     on(event:string, cb:ISnapshotCB);
+    once(event:string, cb:ISnapshotCB);
     off(event:string, cb:ISnapshotCB);
     set(val:any);
     update(val:any);

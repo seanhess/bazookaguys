@@ -36,15 +36,12 @@ module Game {
     gameRef:fire.IRef;
   }
 
-  function wallHash(wall:IWall):string {
-    return wall.x + "," + wall.y
+  function ServiceModule() {
+
   }
 
-
-  function isGameStarted(game:Game.IState) {
-    // need to detect that we are synced too!
-    // don't want to ALWAYS add walls
-    return (game.walls.length)
+  function wallHash(wall:IWall):string {
+    return wall.x + "," + wall.y
   }
 
   function isFirstPlayer(state:Game.IState) {
@@ -111,24 +108,43 @@ module Game {
       game.gameOver.dispose()
     }
 
+    // if you enter the room and it is empty, then initialize it, no?
+    // when you first join, it will ALWAYS be empty, because it hasn't synced yet!
+    // if it shows YOU in there, and only YOU, and no walls, then initialize the game
+
     // the main game timer
     onTimer(game:Game.IState) {
-
       // I want to know if there are NO walls
-      //if (this.isFirstPlayer(game) && !this.isGameStarted(game)) {
-        //this.startGame(game)
-      //}
+      if (this.needsInit(game)) {
+        this.setupGame(game)
+        this.startGame(game)
+      }
     }
 
     // sets up the game, but doesn't "start" it
     setupGame(game:Game.IState) {
+      console.log("SETUP GAME")
       this.SharedArray.removeAll(<any>game.walls)
       range(0, 5).map(randomWall(this.Board)).forEach((wall:IWall) => {
         this.SharedArray.push(<any>game.walls, wall)
       })
     }
 
+    // I need a way to KNOW I am synced, at least once
+    // the shared array and the shared object
+
+    needsInit(game:Game.IState):bool {
+      // if synced players and walls
+      // and I am the only player
+      // and there are no walls
+      var current = this.Players.current(game.players)
+      var nowalls = (this.SharedArray.isSynched(<any>game.walls) && game.walls.length === 0)
+      var onlyPlayer = (this.SharedArray.isSynched(<any>game.players.all) && current && game.players.all.length === 1, game.players.all[0] == current)
+      return (nowalls && onlyPlayer)
+    }
+
     startGame(game:Game.IState) {
+      console.log("START GAME")
       game.status.started = true
       game.status.winner = ""
       this.SharedObject.set(game.status)

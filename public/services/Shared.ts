@@ -23,6 +23,7 @@ module shared {
   export interface IArray {
     _ref: fire.IRef;
     _hash: IHashFunction;
+    _synched: bool;
 
     onPushed?(snap:fire.ISnapshot);
     onChanged?(snap:fire.ISnapshot);
@@ -44,6 +45,7 @@ module shared {
     push(array:IArray, item:any);
     remove(array:IArray, item:any);
     removeAll(array:IArray);
+    isSynched(array:IArray):bool;
   }
 
 
@@ -164,6 +166,7 @@ module shared {
       remove: remove,
       set: set,
       removeAll: removeAll,
+      isSynched: isSynched,
     }
 
     function bind(ref:fire.IRef, hash:IHashFunction = toString, type?:Function = Object):IArray {
@@ -175,6 +178,7 @@ module shared {
       // ref is contextual, needs to be set here with define property
       Object.defineProperty(sa, "_ref", {value:ref})
       Object.defineProperty(sa, "_hash", {value:hash})
+      Object.defineProperty(sa, "_synched", {value:false, writable:true})
 
       // the rest are just methods
       Object.defineProperty(sa, "onPushed", {
@@ -203,6 +207,10 @@ module shared {
       ref.on('child_added', sa.onPushed)
       ref.on('child_changed', sa.onChanged)
       ref.on('child_removed', sa.onRemoved)
+      ref.once('value', makeUpdate($rootScope, function(value){
+        console.log("SharedArray", ref.toString())
+        sa._synched = true
+      }))
 
       return sa
     }
@@ -235,6 +243,10 @@ module shared {
       (<any>array).concat().forEach(function(item:Object) {
         remove(array, item)
       })
+    }
+
+    function isSynched(array:IArray):bool {
+      return (array._synched === true)
     }
 
     function indexOf(array:Object[], iterator:(item:Object) => bool):number {
