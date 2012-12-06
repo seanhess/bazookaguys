@@ -46,7 +46,11 @@
            ng-style="missile | position">
       </div>
 
-      <div class="wall" ng-repeat="wall in walls.all">
+      <div class="wall" 
+           ng-repeat="wall in walls"
+           ng-style="wall | position">
+      </div>
+
     </div>
   </div>
 
