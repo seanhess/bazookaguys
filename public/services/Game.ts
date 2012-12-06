@@ -20,10 +20,6 @@ module Game {
 
   export interface IWall extends IPoint {}
 
-  function wallHash(wall:IWall):string {
-    return wall.x + "," + wall.y
-  }
-
   export interface IState {
 
     status: IStatus;
@@ -40,6 +36,37 @@ module Game {
     gameRef:fire.IRef;
   }
 
+  function wallHash(wall:IWall):string {
+    return wall.x + "," + wall.y
+  }
+
+
+  function isGameStarted(game:Game.IState) {
+    // need to detect that we are synced too!
+    // don't want to ALWAYS add walls
+    return (game.walls.length)
+  }
+
+  function isFirstPlayer(state:Game.IState) {
+    return (state.players.all.length === 1)
+  }
+
+  // this is dumb, there should be an easier way to do this
+  function range(start:number, end:number):number[] {
+    var items = []
+    for (var i = start; i < end; i++) {
+      items.push(i)
+    }
+    return items
+  }
+
+  function randomWall(Board):() => IWall {
+    return function() {
+      var x = Board.randomX()
+      var y = Board.randomY()
+      return {x:x, y:y}
+    }
+  }
 
   export class Service {
     constructor(
@@ -93,46 +120,18 @@ module Game {
       //}
     }
 
-    isGameStarted(game:Game.IState) {
-      // need to detect that we are synced too!
-      // don't want to ALWAYS add walls
-      return (game.walls.length)
-    }
-
-    isFirstPlayer(state:Game.IState) {
-      return (state.players.all.length === 1)
-    }
-
-    randomWalls():IWall[] {
-      var walls = []
-      for (var i = 0; i < 5; i++) {
-        walls.push(this.randomWall())
-      }
-      return walls
-    }
-
-    randomWall():IWall {
-      var x = this.Board.randomX()
-      var y = this.Board.randomY()
-      return {x:x, y:y}
+    // sets up the game, but doesn't "start" it
+    setupGame(game:Game.IState) {
+      this.SharedArray.removeAll(<any>game.walls)
+      range(0, 5).map(randomWall(this.Board)).forEach((wall:IWall) => {
+        this.SharedArray.push(<any>game.walls, wall)
+      })
     }
 
     startGame(game:Game.IState) {
-
       game.status.started = true
       game.status.winner = ""
       this.SharedObject.set(game.status)
-
-      //game.walls.push("cheese") // to prevent it from re-starting over and over
-
-      this.SharedArray.removeAll(<any>game.walls)
-      this.randomWalls().forEach((wall) => {
-        this.SharedArray.push(<any>game.walls, wall)
-      })
-
-      //console.log("WALLS", game.walls, [], game.players.all)
-      //this.SharedArray.push(game.walls, "Cheese")
-      //game.gameRef.child('winner').remove()
     }
 
     join(state:Game.IState, player:IPlayer) {
@@ -171,6 +170,7 @@ module Game {
       this.Players.scoreWin(game.players, winner)
 
       // only the winner player
+      setTimeout(() => this.setupGame(game), 1000)
       setTimeout(() => this.startGame(game), 2000)
     }
   }

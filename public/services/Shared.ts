@@ -15,22 +15,18 @@ module shared {
   }
 
   export interface IObject {
-    ref: fire.IRef;
+    _ref: fire.IRef;
     onValue(snap:fire.ISnapshot);
     updated:signals.ISignal;
   }
 
   export interface IArray {
-    ref: fire.IRef;
-    hash: IHashFunction;
+    _ref: fire.IRef;
+    _hash: IHashFunction;
 
     onPushed?(snap:fire.ISnapshot);
     onChanged?(snap:fire.ISnapshot);
     onRemoved?(snap:fire.ISnapshot);
-
-    pushed:signals.ISignal;
-    updated:signals.ISignal;
-    removed:signals.ISignal;
   }
 
   export interface ObjectService {
@@ -128,7 +124,7 @@ module shared {
     function bind(ref:fire.IRef, type?:Function = Object):IObject {
       var value = Object.create(type.prototype)
 
-      Object.defineProperty(value, "ref", {value:ref})
+      Object.defineProperty(value, "_ref", {value:ref})
       Object.defineProperty(value, "onValue", {
         value: makeUpdate($rootScope, function(updates) {
           // if null, then delete all properties
@@ -147,12 +143,12 @@ module shared {
     }
 
     function unbind(so:IObject) {
-      so.ref.off('value', so.onValue)
+      so._ref.off('value', so.onValue)
       so.updated.dispose()
     }
 
     function set(so:IObject) {
-      setRef(so.ref, so)
+      setRef(so._ref, so)
     }
 
   })
@@ -177,8 +173,8 @@ module shared {
       var sa:IArray = <any> array
 
       // ref is contextual, needs to be set here with define property
-      Object.defineProperty(sa, "ref", {value:ref})
-      Object.defineProperty(sa, "hash", {value:hash})
+      Object.defineProperty(sa, "_ref", {value:ref})
+      Object.defineProperty(sa, "_hash", {value:hash})
 
       // the rest are just methods
       Object.defineProperty(sa, "onPushed", {
@@ -212,35 +208,36 @@ module shared {
     }
 
     function unbind(array:IArray) {
-      array.ref.off('child_added', array.onPushed)
-      array.ref.off('child_changed', array.onChanged)
-      array.ref.off('child_removed', array.onRemoved)
+      array._ref.off('child_added', array.onPushed)
+      array._ref.off('child_changed', array.onChanged)
+      array._ref.off('child_removed', array.onRemoved)
     }
 
-    function push(array:IArray, item:any) {
-      var ref = array.ref.child(array.hash(item))
-      ref.removeOnDisconnect()
+    function push(array:IArray, item:Object) {
+      var ref = array._ref.child(array._hash(item))
+      // for now, leave this out. See if it still plays ok
+      //ref.removeOnDisconnect()
       setRef(ref, item)
     }
 
-    function remove(array:IArray, item:any) {
-      array.ref.child(array.hash(item)).remove()
+    function remove(array:IArray, item:Object) {
+      array._ref.child(array._hash(item)).remove()
     }
 
     // like set, call this if you already know you've updated locally
-    function set(array:IArray, item:any, properties?:string[]) {
-      setRef(array.ref.child(array.hash(item)), item, properties)
+    function set(array:IArray, item:Object, properties?:string[]) {
+      setRef(array._ref.child(array._hash(item)), item, properties)
     }
     
     // removeAll
     function removeAll(array:IArray) {
       // must concat, because otherwise you're removing items from the array while you're enumerating it
-      (<any>array).concat().forEach(function(item:any) {
+      (<any>array).concat().forEach(function(item:Object) {
         remove(array, item)
       })
     }
 
-    function indexOf(array:any[], iterator:(item:any) => bool):number {
+    function indexOf(array:Object[], iterator:(item:Object) => bool):number {
       for (var i = 0; i < array.length; i++) {
         if (iterator(array[i])) return i
       }
@@ -248,29 +245,4 @@ module shared {
     }
 
   })
-
-
-
-  // Data Snapshot: contains all the data at that point in time. Including all child data
-  // you could do complicated nested objects with this!
-
-  // Object.defineProperty() enumerable defaults to false!
-  }
-
-
-
-  // stores a bunch of context
-  // person.save()
-
-  // everything explicit
-  // SharedArray.set(peopleRef, person)
-
-  // it can only have ONE prototype!
-  // but it can have defineProperty to a function
-
-
-
-  // one syntax to rule them all
-  // sharedObject.save(properties?)
-
-
+}
