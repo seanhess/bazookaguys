@@ -12,14 +12,17 @@ module Game {
 
   var GAME_TIMER_DELAY = 80
 
-
   // the actual shared game status
   export interface IStatus extends shared.IObject {
     winner: string;
     started: bool;
   }
 
-  export interface IWall extends IPoint, shared.IArrayItem {}
+  export interface IWall extends IPoint {}
+
+  function wallHash(wall:IWall):string {
+    return wall.x + "," + wall.y
+  }
 
   export interface IState {
 
@@ -63,7 +66,7 @@ module Game {
       var state:Game.IState = {
         players:players,
         missiles:missiles,
-        walls: <any> this.SharedArray.bind(gameRef.child('walls')),
+        walls: <any> this.SharedArray.bind(gameRef.child('walls'), wallHash),
         gameRef: gameRef,
         gameOver: new signals.Signal(),
         timer: timer,
@@ -111,7 +114,7 @@ module Game {
     randomWall():IWall {
       var x = this.Board.randomX()
       var y = this.Board.randomY()
-      return {x:x, y:y, name:x+","+y}
+      return {x:x, y:y}
     }
 
     startGame(game:Game.IState) {

@@ -1,7 +1,6 @@
 // This makes an object that is matched to the shared representation of it
 
 // DONE updates
-// TODO not based on name. Can you find out what the ref name is some other way? set a secret refname, not based on a property on the object? Like, what if I wanted more than one missile per player?
 // TODO events when items are pushed and removed (and updated?)
 
 ///<reference path="../def/angular.d.ts"/>
@@ -9,21 +8,22 @@
 ///<reference path="../def/underscore.d.ts"/>
 ///<reference path="../def/signals.d.ts"/>
 
-// I don't like that I have to use "name", but whatever
-
 module shared {
+
+  interface IHashFunction {
+    (obj:any):string;
+  }
+
   export interface IObject {
     ref: fire.IRef;
     onValue(snap:fire.ISnapshot);
     updated:signals.ISignal;
   }
 
-  export interface IArrayItem {
-    name:string;
-  }
-
   export interface IArray {
     ref: fire.IRef;
+    hash: IHashFunction;
+
     onPushed?(snap:fire.ISnapshot);
     onChanged?(snap:fire.ISnapshot);
     onRemoved?(snap:fire.ISnapshot);
@@ -36,7 +36,7 @@ module shared {
   export interface ObjectService {
 
     // public
-    bind(ref:fire.IRef, type?:Function):IObject;
+    bind(ref:fire.IRef, hash?:IHashFunction, type?:Function):IObject;
     unbind(so:IObject);
     set(so:IObject, properties?:string[]);
   }
@@ -44,9 +44,9 @@ module shared {
   export interface ArrayService {
     bind(ref:fire.IRef, type?:Function):IArray;
     unbind(array:IArray);
-    set(array:IArray, item:IArrayItem, properties?:string[]);
-    push(array:IArray, item:IArrayItem);
-    remove(array:IArray, item:IArrayItem);
+    set(array:IArray, item:any, properties?:string[]);
+    push(array:IArray, item:any);
+    remove(array:IArray, item:any);
     removeAll(array:IArray);
   }
 
@@ -87,6 +87,17 @@ module shared {
     Object.keys(obj).forEach(function(key) {
       delete obj[key]
     })
+  }
+
+  function toString(obj) { 
+    return obj.toString() 
+  }
+
+  function byHash(hash:IHashFunction, value:Object):(item:any) => bool {
+    var key = hash(value)
+    return function(item:Object) {
+      return hash(item) == key
+    }
   }
 
   // it was weird to delete keys. Definitely didn't work to delete then re-add them
@@ -159,7 +170,7 @@ module shared {
       removeAll: removeAll,
     }
 
-    function bind(ref:fire.IRef, type?:Function = Object):IArray {
+    function bind(ref:fire.IRef, hash:IHashFunction = toString, type?:Function = Object):IArray {
 
       // We need to extend array here, which is tricky. We'll use defineProperty to make non-enumerable properties
       var array = []
@@ -167,6 +178,7 @@ module shared {
 
       // ref is contextual, needs to be set here with define property
       Object.defineProperty(sa, "ref", {value:ref})
+      Object.defineProperty(sa, "hash", {value:hash})
 
       // the rest are just methods
       Object.defineProperty(sa, "onPushed", {
@@ -178,15 +190,15 @@ module shared {
       })
 
       Object.defineProperty(sa, "onChanged", {
-        value: makeUpdate($rootScope, function(value) {
-          var obj = _.find(array, byName(value.name))
+        value: makeUpdate($rootScope, function(value:Object) {
+          var obj = _.find(array, byHash(hash, value))
           objectExtend(obj, value)
         })
       })
 
       Object.defineProperty(sa, "onRemoved", {
         value: makeUpdate($rootScope, function(value) {
-          var index = indexOf(array, byName(value.name))
+          var index = indexOf(array, byHash(hash, value))
           if (index < 0) return
           array.splice(index, 1)
         })
@@ -205,38 +217,28 @@ module shared {
       array.ref.off('child_removed', array.onRemoved)
     }
 
-    function push(array:IArray, item:IArrayItem) {
-      var ref = array.ref.child(item.name)
+    function push(array:IArray, item:any) {
+      var ref = array.ref.child(array.hash(item))
       ref.removeOnDisconnect()
       setRef(ref, item)
     }
 
-    function remove(array:IArray, item:IArrayItem) {
-      array.ref.child(item.name).remove()
+    function remove(array:IArray, item:any) {
+      array.ref.child(array.hash(item)).remove()
     }
 
     // like set, call this if you already know you've updated locally
-    function set(array:IArray, item:IArrayItem, properties?:string[]) {
-      setRef(array.ref.child(item.name), item, properties)
+    function set(array:IArray, item:any, properties?:string[]) {
+      setRef(array.ref.child(array.hash(item)), item, properties)
     }
     
     // removeAll
     function removeAll(array:IArray) {
-      // oh, it's because you're removing them AS you're iterating
-      (<any>array).concat().forEach(function(item:IArrayItem) {
-        console.log("REMOVE", item)
+      // must concat, because otherwise you're removing items from the array while you're enumerating it
+      (<any>array).concat().forEach(function(item:any) {
         remove(array, item)
       })
     }
-
-
-
-    function byName(name:string):(item:IArrayItem) => bool {
-      return function(item:IArrayItem) {
-        return (item.name == name)
-      }
-    }
-
 
     function indexOf(array:any[], iterator:(item:any) => bool):number {
       for (var i = 0; i < array.length; i++) {

@@ -37,11 +37,15 @@ angular.module('services')
       fireMissile: fireMissile,
     }
 
+    function missileName(missile:IMissile) {
+      return missile.name
+    }
+
     function connect(gameRef:fire.IRef, players:IPlayerState):IMissileState {
       var missilesRef = gameRef.child('missiles')
 
       var all = []
-      var shared = <any> SharedArray.bind(missilesRef)
+      var shared = <any> SharedArray.bind(missilesRef, missileName)
       var timer = setInterval(() => moveMissiles(state, players), MISSILE_DELAY)
 
       var state = {

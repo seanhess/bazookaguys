@@ -31,7 +31,7 @@ module fire {
   }
 
   export interface IValueCB {
-    (val:any);
+    (val:Object);
   }
 
 

@@ -10,7 +10,7 @@
 ///<reference path="./Board"/>
 ///<reference path="./Shared"/>
 
-interface IPlayer extends shared.IArrayItem {
+interface IPlayer {
   x:number;
   y:number;
   direction:string;
@@ -98,7 +98,7 @@ angular.module('services')
 
   function connect(gameRef:fire.IRef):IPlayerState {
     var playersRef = gameRef.child('players')
-    var sharedPlayers = SharedArray.bind(playersRef)
+    var sharedPlayers = SharedArray.bind(playersRef, playerName)
 
     var state:IPlayerState = {
       myname:null,
@@ -213,6 +213,11 @@ angular.module('services')
         player.taunt = ""
         SharedArray.set(<any>state.all, player, ["taunt"])
     }, 3000)
+  }
+
+
+  function playerName(player:IPlayer):string {
+    return player.name
   }
   
   // just make them class members?
