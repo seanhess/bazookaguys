@@ -14,16 +14,19 @@ module shared {
     (obj:any):string;
   }
 
-  export interface IObject {
+  interface ISyncable {
+    _synched: bool;
+  }
+
+  export interface IObject extends ISyncable {
     _ref: fire.IRef;
     onValue(snap:fire.ISnapshot);
     updated:signals.ISignal;
   }
 
-  export interface IArray {
+  export interface IArray extends ISyncable {
     _ref: fire.IRef;
     _hash: IHashFunction;
-    _synched: bool;
 
     onPushed?(snap:fire.ISnapshot);
     onChanged?(snap:fire.ISnapshot);
@@ -36,6 +39,7 @@ module shared {
     bind(ref:fire.IRef, hash?:IHashFunction, type?:Function):IObject;
     unbind(so:IObject);
     set(so:IObject, properties?:string[]);
+    isSynched(array:IObject):bool;
   }
 
   export interface ArrayService {
@@ -48,7 +52,9 @@ module shared {
     isSynched(array:IArray):bool;
   }
 
-
+  function isSynched(obj:ISyncable):bool {
+    return (obj._synched === true)
+  }
 
   // Internal modules (used by both services, but not exported)
   function setRef(ref:fire.IRef, object:any, properties?:string[]) {
@@ -121,14 +127,21 @@ module shared {
       bind:bind,
       unbind:unbind,
       set:set,
+      isSynched:isSynched,
     }
 
     function bind(ref:fire.IRef, type?:Function = Object):IObject {
       var value = Object.create(type.prototype)
 
       Object.defineProperty(value, "_ref", {value:ref})
+      Object.defineProperty(value, "_synched", {value:false, writeable:true})
       Object.defineProperty(value, "onValue", {
         value: makeUpdate($rootScope, function(updates) {
+          if (!value._synched) {
+            console.log("SharedObject", ref.toString())
+            value._synched = true
+          }
+
           // if null, then delete all properties
           if (!updates) objectEmpty(value)
           else _.extend(value, updates)
@@ -243,10 +256,6 @@ module shared {
       (<any>array).concat().forEach(function(item:Object) {
         remove(array, item)
       })
-    }
-
-    function isSynched(array:IArray):bool {
-      return (array._synched === true)
     }
 
     function indexOf(array:Object[], iterator:(item:Object) => bool):number {
