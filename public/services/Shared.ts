@@ -47,6 +47,7 @@ module shared {
     set(array:IArray, item:IArrayItem, properties?:string[]);
     push(array:IArray, item:IArrayItem);
     remove(array:IArray, item:IArrayItem);
+    removeAll(array:IArray);
   }
 
 
@@ -155,6 +156,7 @@ module shared {
       push: push,
       remove: remove,
       set: set,
+      removeAll: removeAll,
     }
 
     function bind(ref:fire.IRef, type?:Function = Object):IArray {
@@ -216,6 +218,15 @@ module shared {
     // like set, call this if you already know you've updated locally
     function set(array:IArray, item:IArrayItem, properties?:string[]) {
       setRef(array.ref.child(item.name), item, properties)
+    }
+    
+    // removeAll
+    function removeAll(array:IArray) {
+      // oh, it's because you're removing them AS you're iterating
+      (<any>array).concat().forEach(function(item:IArrayItem) {
+        console.log("REMOVE", item)
+        remove(array, item)
+      })
     }
 
 

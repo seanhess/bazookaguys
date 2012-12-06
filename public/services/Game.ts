@@ -102,7 +102,7 @@ module Game {
 
     randomWalls():IWall[] {
       var walls = []
-      for (var i = 0; i < 20; i++) {
+      for (var i = 0; i < 5; i++) {
         walls.push(this.randomWall())
       }
       return walls
@@ -121,6 +121,8 @@ module Game {
       this.SharedObject.set(game.status)
 
       //game.walls.push("cheese") // to prevent it from re-starting over and over
+
+      this.SharedArray.removeAll(<any>game.walls)
       this.randomWalls().forEach((wall) => {
         this.SharedArray.push(<any>game.walls, wall)
       })
