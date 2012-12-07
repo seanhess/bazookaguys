@@ -38,7 +38,11 @@ module Walls {
 
     // are we synced, AND it's empty?
     isEmpty(walls:IState):bool {
-      return (this.SharedArray.isSynched(<any>walls.all) && walls.all.length === 0)
+      return this.isConnected(walls) && walls.all.length === 0
+    }
+
+    isConnected(walls:IState):bool {
+      return this.SharedArray.isSynched(<any>walls.all)
     }
 
     explodeWall(walls:IState, wall:IWall) {

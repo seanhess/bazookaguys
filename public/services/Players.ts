@@ -67,7 +67,7 @@ interface IPlayerService {
   newPlayer(name:string, avatar:string);
   resetPlayer(state:IPlayerState, player:IPlayer);
   
-  isOnlyPlayer(state:IPlayerState):bool;
+  isConnected(state:IPlayerState):bool;
 
   scoreWin(state:IPlayerState, player:IPlayer);
   hasWinner(state:IPlayerState):IPlayer;
@@ -100,7 +100,7 @@ angular.module('services')
     disconnect: disconnect,
     current: currentPlayer,
     resetPlayer: resetPlayer,
-    isOnlyPlayer: isOnlyPlayer,
+    isConnected: isConnected,
     removePlayer: removePlayer,
   }
 
@@ -263,9 +263,8 @@ angular.module('services')
     return state.current
   }
 
-  function isOnlyPlayer(state:IPlayerState):bool {
-    var current = currentPlayer(state)
-    return (current && SharedArray.isSynched(<any>state.all) && state.all.length === 1 && state.all[0] == current)
+  function isConnected(state:IPlayerState):bool {
+    return SharedArray.isSynched(<any>state.all)
   }
 })
 

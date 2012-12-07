@@ -24,6 +24,7 @@ module Game {
   export interface IState {
 
     status: IStatus;
+    connected: bool;
 
     players: IPlayerState;
     missiles: IMissileState;
@@ -65,6 +66,7 @@ module Game {
         gameOver: new signals.Signal(),
         timer: timer,
         status: <any> status,
+        connected: false,
       }
 
       return state
@@ -85,21 +87,31 @@ module Game {
 
     // the main game timer
     onTimer(game:Game.IState) {
-      // I want to know if there are NO walls
-      if (this.needsInit(game)) {
+      if (game.connected === false && this.isGameSynched(game)) {
+        game.connected = true
+        this.onConnect(game)
+      }
+    }
+
+    // the first time I'm fully connected to everything
+    onConnect(game:Game.IState) {
+      console.log("CONNECTED")
+
+      if (this.Players.alivePlayers(game.players.all).length === 1) {
         this.setupGame(game)
         this.startGame(game)
       }
+    }
+
+    isGameSynched(game:Game.IState):bool {
+      // we don't really care about missiles yet
+      return this.Walls.isConnected(game.walls) && this.Players.isConnected(game.players)
     }
 
     // sets up the game, but doesn't "start" it
     setupGame(game:Game.IState) {
       console.log("SETUP GAME")
       this.Walls.createWalls(game.walls)
-    }
-
-    needsInit(game:Game.IState):bool {
-      return (this.Walls.isEmpty(game.walls) && this.Players.isOnlyPlayer(game.players))
     }
 
     startGame(game:Game.IState) {
