@@ -16,10 +16,11 @@ interface GameRouteParams {
   name?: string;
   gameId?: string;
   avatar?: string;
+  nomusic?: bool;
 }
 
 angular.module('controllers')
-.controller('GameCtrl', function ($scope, Players:IPlayerService, Missiles:IMissileService, $routeParams:GameRouteParams, $location, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string, Metrics:IMetrics, Game:Game.Service) {
+.controller('GameCtrl', function ($scope, Players:IPlayerService, Missiles:IMissileService, $routeParams:GameRouteParams, $location:ng.ILocationService, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string, Metrics:IMetrics, Game:Game.Service) {
 
   $scope.version = AppVersion
   $scope.gameId = $routeParams.gameId
@@ -67,7 +68,12 @@ angular.module('controllers')
 
 
   // AUDIO
-  //var music = SoundEffects.music()
+
+  if ($routeParams.nomusic)
+    var music = null
+  else
+    var music = SoundEffects.music()
+
 
   $scope.test = function() {
     //SoundEffects.rocket()
@@ -126,8 +132,13 @@ angular.module('controllers')
     Metrics.chat(current.name, $scope.taunt)
   }
 
+  $scope.turnOffMusic = function() {
+    $location.search("nomusic","true")
+    SoundEffects.pause(music)
+  }
+
   $scope.$on('$destroy', function() {
     Game.disconnect(game)
-    //SoundEffects.pause(music)
+    SoundEffects.pause(music)
   });
 })

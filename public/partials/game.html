@@ -28,6 +28,11 @@
 
     <div id="board" keypress="keypress(e)" ng-click="test()" focus="!chatting">
 
+      <div class="wall" 
+           ng-repeat="wall in walls.all"
+           ng-style="wall | position">
+      </div>
+
       <h1 class="winner" ng-show="status.winner">{{status.winner}} Wins!</h1>
 
       <div class="player avatar {{player.avatar}}" 
@@ -45,12 +50,6 @@
            ng-repeat="missile in missiles.all"
            ng-style="missile | position">
       </div>
-
-      <div class="wall" 
-           ng-repeat="wall in walls.all"
-           ng-style="wall | position">
-      </div>
-
     </div>
   </div>
 
@@ -62,6 +61,11 @@
       <li>Enter, type a message, then Enter to send
       <li>If someone wins, the game restarts in 2 seconds.
     </div>
+
+    <div class="music">
+      <a ng-click="turnOffMusic()">Turn Music Off</a>
+    </div>
+
     <!-- can you detect what already had the focus? -->
     <div><input id="taunt" ng-model="taunt" focus="chatting" on-enter="sendTaunt()"></div>
   <div>

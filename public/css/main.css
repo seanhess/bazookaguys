@@ -16,6 +16,10 @@ html {
   clear: both;
   position: absolute;
   top: 660px;
+  color: #fff;
+}
+.footer a {
+  color: #fff;
 }
 .badges {
   clear: both;
