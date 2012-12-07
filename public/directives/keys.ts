@@ -4,6 +4,7 @@
 angular.module('directives')
 .directive('keypress', function($parse:ng.IParseService) {
   return function(scope:ng.IScope, element:JQuery, attrs) {
+    // NOTE: removed isPressed check, which before disabled holding down the arrow keys to move
     // element is a jquery element
 
     // focus the div. without the first line it doesn't get keyboard events. 
@@ -12,19 +13,19 @@ angular.module('directives')
     element.focus()
 
     var onPress = $parse(attrs.keypress)
-    var isPressed = false
+    //var isPressed = false
 
     element.keydown(function(e) {
-        if (isPressed) return
-        isPressed = true
+        //if (isPressed) return
+        //isPressed = true
         scope.$apply(function() {
           onPress(scope, {e:e})
         })
     });				
 
-    element.keyup(function(e) {
-      isPressed = false
-    })
+    //element.keyup(function(e) {
+      //isPressed = false
+    //})
   }
 })
 

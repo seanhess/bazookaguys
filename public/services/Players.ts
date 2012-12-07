@@ -71,6 +71,7 @@ interface IPlayerService {
 
   scoreWin(state:IPlayerState, player:IPlayer);
   hasWinner(state:IPlayerState):IPlayer;
+  removePlayer(state:IPlayerState, player:IPlayer);
 }
 
 
