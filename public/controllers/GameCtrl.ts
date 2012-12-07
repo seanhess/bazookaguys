@@ -93,8 +93,13 @@ angular.module('controllers')
 
     // TODO dead-person headstone. allow you to chat when dead
     if (e.keyCode == Keys.ENTER) {
-      $scope.chatting = true
-      $scope.taunt = " "
+      if ($scope.chatting) {
+        $scope.sendTaunt()
+      }
+      else {
+        $scope.chatting = true
+        $scope.taunt = " "
+      }
     }
 
     // you can do ANYTHING if you are dead, or if the game is currently OVER
