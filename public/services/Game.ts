@@ -2,6 +2,9 @@
 ///<reference path="./Shared"/>
 ///<reference path="./FB"/>
 ///<reference path="./Board"/>
+///<reference path="./Walls"/>
+///<reference path="./Players"/>
+///<reference path="./Missiles"/>
 ///<reference path="../def/angular.d.ts"/>
 ///<reference path="../def/signals.d.ts"/>
 
@@ -18,57 +21,24 @@ module Game {
     started: bool;
   }
 
-  export interface IWall extends IPoint {}
-
   export interface IState {
 
     status: IStatus;
 
     players: IPlayerState;
     missiles: IMissileState;
-    walls: IWall[];
+    walls: Walls.IState;
 
     timer: number;
 
     gameOver: signals.ISignal; // finished a game
-
-    boundOnWinner?:fire.ISnapshotCB;
-    gameRef:fire.IRef;
-  }
-
-  function ServiceModule() {
-
-  }
-
-  function wallHash(wall:IWall):string {
-    return wall.x + "," + wall.y
-  }
-
-  function isFirstPlayer(state:Game.IState) {
-    return (state.players.all.length === 1)
-  }
-
-  // this is dumb, there should be an easier way to do this
-  function range(start:number, end:number):number[] {
-    var items = []
-    for (var i = start; i < end; i++) {
-      items.push(i)
-    }
-    return items
-  }
-
-  function randomWall(Board):() => IWall {
-    return function() {
-      var x = Board.randomX()
-      var y = Board.randomY()
-      return {x:x, y:y}
-    }
   }
 
   export class Service {
     constructor(
       private Players:IPlayerService, 
       private Missiles:IMissileService, 
+      private Walls:Walls.Service, 
       private FB:IFirebaseService,
       private SharedObject:shared.ObjectService,
       private SharedArray:shared.ArrayService,
@@ -78,6 +48,7 @@ module Game {
     connect(gameId:string):Game.IState {
       var gameRef = this.FB.game(gameId)
       var statusRef = gameRef.child("status")
+      var walls = this.Walls.connect(gameRef)
       var players = this.Players.connect(gameRef)
       var missiles = this.Missiles.connect(gameRef, players)
 
@@ -90,8 +61,7 @@ module Game {
       var state:Game.IState = {
         players:players,
         missiles:missiles,
-        walls: <any> this.SharedArray.bind(gameRef.child('walls'), wallHash),
-        gameRef: gameRef,
+        walls:walls,
         gameOver: new signals.Signal(),
         timer: timer,
         status: <any> status,
@@ -103,9 +73,10 @@ module Game {
     disconnect(game:Game.IState) {
       this.Players.disconnect(game.players)
       this.Missiles.disconnect(game.missiles)
-      //game.gameRef.child('winner').off('value', state.boundOnWinner)
+      this.Walls.disconnect(game.walls)
       clearInterval(game.timer)
       game.gameOver.dispose()
+      this.SharedObject.unbind(game.status)
     }
 
     // if you enter the room and it is empty, then initialize it, no?
@@ -124,27 +95,14 @@ module Game {
     // sets up the game, but doesn't "start" it
     setupGame(game:Game.IState) {
       console.log("SETUP GAME")
-      this.SharedArray.removeAll(<any>game.walls)
-      range(0, 5).map(randomWall(this.Board)).forEach((wall:IWall) => {
-        this.SharedArray.push(<any>game.walls, wall)
-      })
+      this.Walls.createWalls(game.walls)
     }
 
-    // I need a way to KNOW I am synced, at least once
-    // the shared array and the shared object
-
     needsInit(game:Game.IState):bool {
-      // if synced players and walls
-      // and I am the only player
-      // and there are no walls
-      var current = this.Players.current(game.players)
-      var nowalls = (this.SharedArray.isSynched(<any>game.walls) && game.walls.length === 0)
-      var onlyPlayer = (this.SharedArray.isSynched(<any>game.players.all) && current && game.players.all.length === 1, game.players.all[0] == current)
-      return (nowalls && onlyPlayer)
+      return (this.Walls.isEmpty(game.walls) && this.Players.isOnlyPlayer(game.players))
     }
 
     startGame(game:Game.IState) {
-      console.log("START GAME")
       game.status.started = true
       game.status.winner = ""
       this.SharedObject.set(game.status)

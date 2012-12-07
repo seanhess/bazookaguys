@@ -9,6 +9,7 @@
 ///<reference path="./AppVersion"/>
 ///<reference path="./Board"/>
 ///<reference path="./Shared"/>
+///<reference path="./Walls"/>
 
 interface IPlayer {
   x:number;
@@ -58,12 +59,13 @@ interface IPlayerService {
   disconnect(state:IPlayerState);
   add(state:IPlayerState, player:IPlayer);
   killPlayer(state:IPlayerState, player:IPlayer, killerName:string);
-  move(state:IPlayerState, player:IPlayer, direction:string);
+  move(state:IPlayerState, walls:Walls.IState, player:IPlayer, direction:string);
   taunt(state:IPlayerState, player:IPlayer, taunt:string);
 
   current(state:IPlayerState):IPlayer;
   newPlayer(name:string, avatar:string);
   resetPlayer(state:IPlayerState, player:IPlayer);
+  isOnlyPlayer(state:IPlayerState):bool;
 
   scoreWin(state:IPlayerState, player:IPlayer);
   hasWinner(state:IPlayerState):IPlayer;
@@ -94,6 +96,7 @@ angular.module('services')
     disconnect: disconnect,
     current: currentPlayer,
     resetPlayer: resetPlayer,
+    isOnlyPlayer: isOnlyPlayer,
   }
 
   function connect(gameRef:fire.IRef):IPlayerState {
@@ -190,11 +193,13 @@ angular.module('services')
     }
   }
 
-  function move(state:IPlayerState, player:IPlayer, direction:string) {
+  function move(state:IPlayerState, walls:Walls.IState, player:IPlayer, direction:string) {
     var position = Board.move(player, direction)
     if (!position) return
+
+    var obstacles = walls.all.concat(alivePlayers(state.all))
       
-    var hit = Board.findHit(alivePlayers(state.all), position)
+    var hit = Board.findHit(obstacles, position)
     if (hit) return
 
     player.x = position.x
@@ -245,6 +250,10 @@ angular.module('services')
     return state.current
   }
 
+  function isOnlyPlayer(state:IPlayerState):bool {
+    var current = currentPlayer(state)
+    return (current && SharedArray.isSynched(<any>state.all) && state.all.length === 1 && state.all[0] == current)
+  }
 })
 
 // CONSTANTS

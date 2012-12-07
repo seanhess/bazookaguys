@@ -116,7 +116,7 @@ angular.module('controllers')
 
     if (!direction) return
 
-    Players.move(game.players, current, direction)
+    Players.move(game.players, game.walls, current, direction)
   }
 
   $scope.sendTaunt = function() {
