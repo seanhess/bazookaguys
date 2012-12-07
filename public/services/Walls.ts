@@ -5,7 +5,7 @@
 
 module Walls {
 
-  var NUM_WALLS = 5
+  var NUM_WALLS = 20
 
   export interface IWall extends IPoint {}
 
@@ -39,6 +39,10 @@ module Walls {
     // are we synced, AND it's empty?
     isEmpty(walls:IState):bool {
       return (this.SharedArray.isSynched(<any>walls.all) && walls.all.length === 0)
+    }
+
+    explodeWall(walls:IState, wall:IWall) {
+      this.SharedArray.remove(<any>walls.all, wall)
     }
   }
 

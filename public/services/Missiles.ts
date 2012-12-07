@@ -1,5 +1,8 @@
 ///<reference path="../def/angular.d.ts"/>
 ///<reference path="./Shared"/>
+///<reference path="./Walls"/>
+///<reference path="./Players"/>
+///<reference path="./FB"/>
 // This service keeps track of the missiles
 
 // this is GAY. use a real event instead!
@@ -18,7 +21,7 @@ interface IMissile extends IDirectional {
 }
 
 interface IMissileService {
-  connect(gameRef:fire.IRef, players:IPlayerState):IMissileState;
+  connect(gameRef:fire.IRef, players:IPlayerState, walls:Walls.IState):IMissileState;
   disconnect(state:IMissileState);
   fireMissile(state:IMissileState, player:IPlayer);
 }
@@ -27,7 +30,7 @@ angular.module('services')
 
 
 // TODO use signals / events instead of rootScope stuff
-.factory('Missiles', function($rootScope:ng.IRootScopeService, FB:IFirebaseService, Board:IBoard, Players:IPlayerService, SharedArray:shared.ArrayService):IMissileService {
+.factory('Missiles', function($rootScope:ng.IRootScopeService, FB:IFirebaseService, Board:IBoard, Players:IPlayerService, SharedArray:shared.ArrayService, Walls:Walls.Service):IMissileService {
 
     var MISSILE_DELAY = 80
 
@@ -41,12 +44,12 @@ angular.module('services')
       return missile.name
     }
 
-    function connect(gameRef:fire.IRef, players:IPlayerState):IMissileState {
+    function connect(gameRef:fire.IRef, players:IPlayerState, walls:Walls.IState):IMissileState {
       var missilesRef = gameRef.child('missiles')
 
       var all = []
       var shared = <any> SharedArray.bind(missilesRef, missileName)
-      var timer = setInterval(() => moveMissiles(state, players), MISSILE_DELAY)
+      var timer = setInterval(() => moveMissiles(state, players, walls), MISSILE_DELAY)
 
       var state = {
         ref:missilesRef,
@@ -84,13 +87,13 @@ angular.module('services')
     // TODO use a SINGLE timer for ALL missiles (observer?)
     // TODO do any missiles collide with each other?
 
-    function moveMissiles(state:IMissileState, players:IPlayerState) {
+    function moveMissiles(state:IMissileState, players:IPlayerState, walls:Walls.IState) {
       $rootScope.$apply(function() {
-        state.all.forEach((m:IMissile) => moveMissile(state, players, m))
+        state.all.forEach((m:IMissile) => moveMissile(state, players, walls, m))
       })
     }
 
-    function moveMissile(state:IMissileState, players:IPlayerState, missile:IMissile) {
+    function moveMissile(state:IMissileState, players:IPlayerState, walls:Walls.IState, missile:IMissile) {
       var position = Board.move(missile, missile.direction)
       if (!position) return explodeMissile(state, missile)
 
@@ -114,6 +117,13 @@ angular.module('services')
       if (hitMissile) {
         explodeMissile(state, missile)
         explodeMissile(state, hitMissile)
+      }
+
+      var hitWall = <Walls.IWall> Board.findHit(walls.all, missile)
+
+      if (hitWall) {
+        explodeMissile(state, missile)
+        Walls.explodeWall(walls, hitWall)
       }
     }
 

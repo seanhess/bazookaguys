@@ -50,7 +50,7 @@ module Game {
       var statusRef = gameRef.child("status")
       var walls = this.Walls.connect(gameRef)
       var players = this.Players.connect(gameRef)
-      var missiles = this.Missiles.connect(gameRef, players)
+      var missiles = this.Missiles.connect(gameRef, players, walls)
 
       var status = this.SharedObject.bind(statusRef)
       status.updated.add(() => this.onStatus(state))
