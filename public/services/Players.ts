@@ -52,6 +52,7 @@ interface IPlayerService {
 
   isAlive(p:IPlayer):bool;
   alivePlayers(players:IPlayer[]):IPlayer[];
+  deadPlayers(players:IPlayer[]):IPlayer[];
   playerByName(players:IPlayer[], name:string):IPlayer;
   latestVersion(players:IPlayer[]):string;
 
@@ -65,6 +66,7 @@ interface IPlayerService {
   current(state:IPlayerState):IPlayer;
   newPlayer(name:string, avatar:string);
   resetPlayer(state:IPlayerState, player:IPlayer);
+  
   isOnlyPlayer(state:IPlayerState):bool;
 
   scoreWin(state:IPlayerState, player:IPlayer);
@@ -81,6 +83,7 @@ angular.module('services')
   return {
     isAlive: isAlive,
     alivePlayers: alivePlayers,
+    deadPlayers: deadPlayers,
     playerByName: playerByName,
     latestVersion: latestVersion,
 
@@ -97,6 +100,7 @@ angular.module('services')
     current: currentPlayer,
     resetPlayer: resetPlayer,
     isOnlyPlayer: isOnlyPlayer,
+    removePlayer: removePlayer,
   }
 
   function connect(gameRef:fire.IRef):IPlayerState {
@@ -129,6 +133,10 @@ angular.module('services')
 
   function alivePlayers(players:IPlayer[]):IPlayer[] {
     return players.filter(isAlive)
+  }
+
+  function deadPlayers(players:IPlayer[]):IPlayer[] {
+    return players.filter((p:IPlayer) => p.state == STATE.DEAD)
   }
 
   function newPlayer(name:string, avatar:string) {
@@ -174,6 +182,10 @@ angular.module('services')
     SharedArray.set(<any>state.all, player)
 
     state.currentKilled.dispatch(player, killerName)
+  }
+
+  function removePlayer(state:IPlayerState, player:IPlayer) {
+    SharedArray.remove(<any>state.all, player)
   }
 
   // returns winner or null

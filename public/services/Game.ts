@@ -106,6 +106,11 @@ module Game {
       game.status.started = true
       game.status.winner = ""
       this.SharedObject.set(game.status)
+
+      // clean it up too
+      this.Players.deadPlayers(game.players.all).forEach((p:IPlayer) => {
+        this.Players.removePlayer(game.players, p)
+      })
     }
 
     join(state:Game.IState, player:IPlayer) {
@@ -118,8 +123,6 @@ module Game {
         this.onWinner(game)
     }
 
-    // NEEDS to fire any time winner updates!
-    // how do I know?
     onWinner(game:Game.IState) {
       game.gameOver.dispatch(game.status.winner)
       setTimeout(() => this.resetSelf(game), 1000)
@@ -133,7 +136,7 @@ module Game {
       this.Players.resetPlayer(game.players, current)
     }
 
-    // only called by the actual player. the winner
+    // ONLY called by the actual player. the winner
     checkWin(game:Game.IState) {
       var winner = this.Players.hasWinner(game.players)
       if (!winner) return
@@ -143,7 +146,6 @@ module Game {
 
       this.Players.scoreWin(game.players, winner)
 
-      // only the winner player
       setTimeout(() => this.setupGame(game), 1000)
       setTimeout(() => this.startGame(game), 2000)
     }
@@ -152,3 +154,8 @@ module Game {
 
 // does this one create the players and the missiles?
 angular.module('services').factory('Game', toService(Game.Service))
+
+
+// OPTIONS
+// - make a new "match". only those with the right match id?
+// - remove any dead players after 2s
