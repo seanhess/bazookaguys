@@ -33,6 +33,11 @@
            ng-style="wall | position">
       </div>
 
+      <div class="powerup" 
+           ng-repeat="powerup in powerups.all"
+           ng-style="powerup | position">
+      </div>
+
       <h1 class="winner" ng-show="status.winner">{{status.winner}} Wins!</h1>
 
       <div class="player avatar {{player.avatar}}" 

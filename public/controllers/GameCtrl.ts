@@ -21,7 +21,7 @@ interface GameRouteParams {
 }
 
 angular.module('controllers')
-.controller('GameCtrl', function ($scope, Players:IPlayerService, Missiles:IMissileService, $routeParams:GameRouteParams, $location:ng.ILocationService, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string, Metrics:IMetrics, Game:Game.Service, Keys = Keys.IService) {
+.controller('GameCtrl', function ($scope, Players:IPlayerService, Missiles:IMissileService, $routeParams:GameRouteParams, $location:ng.ILocationService, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string, Metrics:IMetrics, Game = Game.IService, Keys = Keys.IService) {
 
   $scope.version = AppVersion
   $scope.gameId = $routeParams.gameId
@@ -51,6 +51,7 @@ angular.module('controllers')
   $scope.players = game.players
   $scope.missiles = game.missiles
   $scope.walls = game.walls
+  $scope.powerups = game.powerups
 
   $scope.latestAlert = "Welcome to Your Underwater Adventure"
 

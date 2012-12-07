@@ -5,6 +5,7 @@
 ///<reference path="./Walls"/>
 ///<reference path="./Players"/>
 ///<reference path="./Missiles"/>
+///<reference path="./Powerups"/>
 ///<reference path="../def/angular.d.ts"/>
 ///<reference path="../def/signals.d.ts"/>
 
@@ -13,7 +14,7 @@
 
 module Game {
 
-  var GAME_TIMER_DELAY = 80
+  var MS_TICK = 80
 
   // the actual shared game status
   export interface IStatus extends shared.IObject {
@@ -29,40 +30,54 @@ module Game {
     players: IPlayerState;
     missiles: IMissileState;
     walls: Walls.IState;
+    powerups: Powerup.IState; 
 
     timer: number;
 
     gameOver: signals.ISignal; // finished a game
   }
 
-  export class Service {
-    constructor(
-      private Players:IPlayerService, 
-      private Missiles:IMissileService, 
-      private Walls:Walls.Service, 
-      private FB:IFirebaseService,
-      private SharedObject:shared.ObjectService,
-      private SharedArray:shared.ArrayService,
-      private Board:IBoard,
-    ) { }
+  // HACK: you can type this dependency as function(Game = Game.IService) instead of function(Game:Game.IService)
+  // later if we add an interface for it, we'll use the normal syntax
+  export var IService = Service(null, null, null, null, null, null, null)
+  angular.module('services').factory('Game', Service)
 
-    connect(gameId:string):Game.IState {
-      var gameRef = this.FB.game(gameId)
+  function Service(
+    Players:IPlayerService, 
+    Missiles:IMissileService, 
+    Walls:Walls.Service, 
+    FB:IFirebaseService,
+    SharedObject:shared.ObjectService,
+    SharedArray:shared.ArrayService,
+    Board:IBoard,
+    Powerups = Powerup.IService,
+  ) { 
+
+    return {
+      connect: connect,
+      disconnect: disconnect,
+      join: join,
+    }
+
+    function connect(gameId:string):Game.IState {
+      var gameRef = FB.game(gameId)
       var statusRef = gameRef.child("status")
-      var walls = this.Walls.connect(gameRef)
-      var players = this.Players.connect(gameRef)
-      var missiles = this.Missiles.connect(gameRef, players, walls)
+      var walls = Walls.connect(gameRef)
+      var players = Players.connect(gameRef)
+      var missiles = Missiles.connect(gameRef, players, walls)
+      var powerups = Powerups.connect(gameRef)
 
-      var status = this.SharedObject.bind(statusRef)
-      status.updated.add(() => this.onStatus(state))
+      var status = SharedObject.bind(statusRef)
+      status.updated.add(() => onStatus(state))
 
-      var timer = setInterval(() => this.onTimer(state), GAME_TIMER_DELAY)
-      players.currentKilled.add(() => this.checkWin(state))
+      var timer = setInterval(() => onTimer(state), MS_TICK)
+      players.currentKilled.add(() => checkWin(state))
 
       var state:Game.IState = {
         players:players,
         missiles:missiles,
         walls:walls,
+        powerups:powerups,
         gameOver: new signals.Signal(),
         timer: timer,
         status: <any> status,
@@ -72,13 +87,14 @@ module Game {
       return state
     }
 
-    disconnect(game:Game.IState) {
-      this.Players.disconnect(game.players)
-      this.Missiles.disconnect(game.missiles)
-      this.Walls.disconnect(game.walls)
+    function disconnect(game:Game.IState) {
+      Players.disconnect(game.players)
+      Missiles.disconnect(game.missiles)
+      Walls.disconnect(game.walls)
+      Powerups.disconnect(game.powerups)
       clearInterval(game.timer)
       game.gameOver.dispose()
-      this.SharedObject.unbind(game.status)
+      SharedObject.unbind(game.status)
     }
 
     // if you enter the room and it is empty, then initialize it, no?
@@ -86,88 +102,85 @@ module Game {
     // if it shows YOU in there, and only YOU, and no walls, then initialize the game
 
     // the main game timer
-    onTimer(game:Game.IState) {
-      if (game.connected === false && this.isGameSynched(game)) {
+    function onTimer(game:Game.IState) {
+      if (game.connected === false && isGameSynched(game)) {
         game.connected = true
-        this.onConnect(game)
+        onConnect(game)
       }
+
+      // POWERUPS
+      Powerups.tick(game.powerups, MS_TICK)
     }
 
     // the first time I'm fully connected to everything
-    onConnect(game:Game.IState) {
+    function onConnect(game:Game.IState) {
       console.log("CONNECTED")
 
-      if (this.Players.alivePlayers(game.players.all).length === 1) {
-        this.setupGame(game)
-        this.startGame(game)
+      if (Players.alivePlayers(game.players.all).length === 1) {
+        setupGame(game)
+        startGame(game)
       }
     }
 
-    isGameSynched(game:Game.IState):bool {
+    function isGameSynched(game:Game.IState):bool {
       // we don't really care about missiles yet
-      return this.Walls.isConnected(game.walls) && this.Players.isConnected(game.players)
+      return Walls.isConnected(game.walls) && Players.isConnected(game.players)
     }
 
     // sets up the game, but doesn't "start" it
-    setupGame(game:Game.IState) {
+    function setupGame(game:Game.IState) {
       console.log("SETUP GAME")
-      this.Walls.createWalls(game.walls)
+      Walls.createWalls(game.walls)
+      Powerups.clear(game.powerups)
     }
 
-    startGame(game:Game.IState) {
+    function startGame(game:Game.IState) {
       game.status.started = true
       game.status.winner = ""
-      this.SharedObject.set(game.status)
+      SharedObject.set(game.status)
 
       // clean it up too
-      this.Players.deadPlayers(game.players.all).forEach((p:IPlayer) => {
-        this.Players.removePlayer(game.players, p)
+      Players.deadPlayers(game.players.all).forEach((p:IPlayer) => {
+        Players.removePlayer(game.players, p)
       })
     }
 
-    join(state:Game.IState, player:IPlayer) {
+    function join(state:Game.IState, player:IPlayer) {
       // if no one else is here, then initialize the walls?
-      this.Players.add(state.players, player)
+      Players.add(state.players, player)
     }
 
-    onStatus(game:Game.IState) {
+    function onStatus(game:Game.IState) {
       if (game.status.winner)
-        this.onWinner(game)
+        onWinner(game)
     }
 
-    onWinner(game:Game.IState) {
+    function onWinner(game:Game.IState) {
       game.gameOver.dispatch(game.status.winner)
-      setTimeout(() => this.resetSelf(game), 1000)
+      setTimeout(() => resetSelf(game), 1000)
     }
 
     // resets game, but does NOT make it playable
     // only resets YOU. any players not paying attention don't get reset. they get REMOVED?
     // at least we can make them be dead
-    resetSelf(game:Game.IState) {
-      var current = this.Players.current(game.players)
-      this.Players.resetPlayer(game.players, current)
+    function resetSelf(game:Game.IState) {
+      var current = Players.current(game.players)
+      Players.resetPlayer(game.players, current)
     }
 
     // ONLY called by the actual player. the winner
-    checkWin(game:Game.IState) {
-      var winner = this.Players.hasWinner(game.players)
+    function checkWin(game:Game.IState) {
+      var winner = Players.hasWinner(game.players)
       if (!winner) return
 
       game.status.winner = winner.name
-      this.SharedObject.set(game.status)
+      SharedObject.set(game.status)
 
-      this.Players.scoreWin(game.players, winner)
+      Players.scoreWin(game.players, winner)
 
-      setTimeout(() => this.setupGame(game), 1000)
-      setTimeout(() => this.startGame(game), 2000)
+      setTimeout(() => setupGame(game), 1000)
+      setTimeout(() => startGame(game), 2000)
     }
   }
+
 }
-
-// does this one create the players and the missiles?
-angular.module('services').factory('Game', toService(Game.Service))
-
-
-// OPTIONS
-// - make a new "match". only those with the right match id?
-// - remove any dead players after 2s

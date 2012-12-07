@@ -1,5 +1,6 @@
 ///<reference path="../def/angular.d.ts"/>
 ///<reference path="../def/jquery.d.ts"/>
+///<reference path="./Board"/>
 
 module Keys {
 
