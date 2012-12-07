@@ -62,7 +62,7 @@ angular.module('controllers')
     Metrics.gameOver($scope.gameId, name, winner, game.players.all.length)
   })
 
-  $scope.$on("amissile", function(e, player) {
+  $scope.$on("missile", function(e, player) {
     SoundEffects.rocket()
   })
 
@@ -115,7 +115,6 @@ angular.module('controllers')
 
     if (e.keyCode === SPACE)
       return Missiles.fireMissile(game.missiles, current)
-
 
     // otherwise it's movement
     var direction = keyCodeToDirection(e.keyCode)

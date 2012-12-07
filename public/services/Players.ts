@@ -213,10 +213,12 @@ angular.module('services')
     var obstacles = walls.all.concat(alivePlayers(state.all))
       
     var hit = Board.findHit(obstacles, position)
-    if (hit) return
 
-    player.x = position.x
-    player.y = position.y
+    // if you collided with something, you can't move, but you can change your facing
+    if (!hit) {
+      player.x = position.x
+      player.y = position.y
+    }
     player.direction = position.direction
 
     SharedArray.set(<any>state.all, player, ["x","y", "direction"])
