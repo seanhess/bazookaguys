@@ -103,8 +103,9 @@ angular.module('services')
 
       // Check to see if the missile hits anyone
       var hitPlayer = <IPlayer> Board.findHit(players.all, missile)
+      var current = Players.current(players)
 
-      if (hitPlayer) {
+      if (hitPlayer && hitPlayer.name != current.name) {
         explodeMissile(state, missile) // if you see it hit, then remove it
 
         // if it's YOUR missile, blow them up!
