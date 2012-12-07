@@ -7,6 +7,7 @@
 ///<reference path="../services/Board"/>
 ///<reference path="../services/SoundEffects"/>
 ///<reference path="../services/AppVersion"/>
+///<reference path="../services/Keys"/>
 
 ///<reference path="../filters/position.ts"/>
 ///<reference path="../directives/keys.ts"/>
@@ -20,7 +21,7 @@ interface GameRouteParams {
 }
 
 angular.module('controllers')
-.controller('GameCtrl', function ($scope, Players:IPlayerService, Missiles:IMissileService, $routeParams:GameRouteParams, $location:ng.ILocationService, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string, Metrics:IMetrics, Game:Game.Service) {
+.controller('GameCtrl', function ($scope, Players:IPlayerService, Missiles:IMissileService, $routeParams:GameRouteParams, $location:ng.ILocationService, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string, Metrics:IMetrics, Game:Game.Service, Keys = Keys.IService) {
 
   $scope.version = AppVersion
   $scope.gameId = $routeParams.gameId
@@ -40,6 +41,7 @@ angular.module('controllers')
   // SOMEONE needs to "start" the game
   // the first player in the list alphabetically. that can be calculated
 
+
   var game = Game.connect($scope.gameId)
   var player = Players.newPlayer(name, avatar)
   Game.join(game, player)
@@ -51,6 +53,7 @@ angular.module('controllers')
   $scope.walls = game.walls
 
   $scope.latestAlert = "Welcome to Your Underwater Adventure"
+
 
   // DOESN'T WORK: need a way to die into observing changes
   //game.players.killed.add(function(player:IPlayer) {
@@ -83,28 +86,13 @@ angular.module('controllers')
     return (player.name == name)
   }
 
-  var LEFT = 37,
-      UP = 38,
-      RIGHT = 39, 
-      DOWN = 40,
-      SPACE = 32,
-      ENTER = 13
-
-  function keyCodeToDirection(code:number):string {
-    if (code == LEFT) return Board.LEFT
-    else if (code == RIGHT) return Board.RIGHT
-    else if (code == DOWN) return Board.DOWN
-    else if (code == UP) return Board.UP
-    return null
-  }
 
   // ignore ALL key presses if they are dead
-  $scope.keypress = function (e) {
-
+  Keys.connect(function (e) {
     var current = Players.current(game.players)
 
     // TODO dead-person headstone. allow you to chat when dead
-    if (e.keyCode == ENTER) {
+    if (e.keyCode == Keys.ENTER) {
       $scope.chatting = true
       $scope.taunt = " "
     }
@@ -113,16 +101,16 @@ angular.module('controllers')
     if (!Players.isAlive(current)) return
     if (game.status.winner) return
 
-    if (e.keyCode === SPACE)
+    if (e.keyCode === Keys.SPACE)
       return Missiles.fireMissile(game.missiles, current)
 
     // otherwise it's movement
-    var direction = keyCodeToDirection(e.keyCode)
+    var direction = Keys.keyCodeToDirection(e.keyCode)
 
     if (!direction) return
 
     Players.move(game.players, game.walls, current, direction)
-  }
+  })
 
   $scope.sendTaunt = function() {
     $scope.chatting = false
@@ -139,5 +127,6 @@ angular.module('controllers')
   $scope.$on('$destroy', function() {
     Game.disconnect(game)
     SoundEffects.pause(music)
+    Keys.disconnect()
   });
 })
