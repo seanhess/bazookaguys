@@ -60,7 +60,7 @@ interface IPlayerService {
   disconnect(state:IPlayerState);
   add(state:IPlayerState, player:IPlayer);
   killPlayer(state:IPlayerState, player:IPlayer, killerName:string);
-  move(state:IPlayerState, walls:Walls.IState, player:IPlayer, direction:string);
+  move(state:IPlayerState, walls:Wall.IState, player:IPlayer, direction:string);
   taunt(state:IPlayerState, player:IPlayer, taunt:string);
 
   current(state:IPlayerState):IPlayer;
@@ -206,11 +206,11 @@ angular.module('services')
     }
   }
 
-  function move(state:IPlayerState, walls:Walls.IState, player:IPlayer, direction:string) {
+  function move(state:IPlayerState, walls:Wall.IState, player:IPlayer, direction:string) {
     var position = Board.move(player, direction)
     if (!position) return
 
-    var obstacles = walls.all.concat(alivePlayers(state.all))
+    var obstacles = (<IPoint[]> walls.all).concat(alivePlayers(state.all))
       
     var hit = Board.findHit(obstacles, position)
 

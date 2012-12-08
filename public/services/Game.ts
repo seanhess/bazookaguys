@@ -29,7 +29,7 @@ module Game {
 
     players: IPlayerState;
     missiles: IMissileState;
-    walls: Walls.IState;
+    walls: Wall.IState;
     powerups: Powerup.IState; 
 
     timer: number;
@@ -45,12 +45,12 @@ module Game {
   function Service(
     Players:IPlayerService, 
     Missiles:IMissileService, 
-    Walls:Walls.Service, 
     FB:IFirebaseService,
     SharedObject:shared.ObjectService,
     SharedArray:shared.ArrayService,
     Board:IBoard,
     Powerups = Powerup.IService,
+    Walls = Wall.IService,
   ) { 
 
     return {

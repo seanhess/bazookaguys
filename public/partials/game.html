@@ -28,7 +28,7 @@
 
     <div id="board" ng-click="test()" focus="!chatting">
 
-      <div class="wall" 
+      <div class="wall strength{{wall.strength}}" 
            ng-repeat="wall in walls.all"
            ng-style="wall | position">
       </div>
