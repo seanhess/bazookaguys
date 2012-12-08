@@ -29,7 +29,7 @@ module Game {
 
     players: IPlayerState;
     missiles: IMissileState;
-    walls: Wall.IState;
+    walls: walls.IState;
     powerups: Powerup.IState; 
 
     timer: number;
@@ -50,7 +50,7 @@ module Game {
     SharedArray:shared.ArrayService,
     Board:IBoard,
     Powerups = Powerup.IService,
-    Walls = Wall.IService,
+    Walls = walls.IService,
   ) { 
 
     return {

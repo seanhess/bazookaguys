@@ -3,7 +3,7 @@
 ///<reference path="./Board"/>
 ///<reference path="../def/angular.d.ts"/>
 
-module Wall {
+module walls {
 
   var NUM_WALLS = 20
 

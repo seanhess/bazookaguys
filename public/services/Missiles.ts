@@ -21,7 +21,7 @@ interface IMissile extends IDirectional {
 }
 
 interface IMissileService {
-  connect(gameRef:fire.IRef, players:IPlayerState, walls:Wall.IState):IMissileState;
+  connect(gameRef:fire.IRef, players:IPlayerState, walls:walls.IState):IMissileState;
   disconnect(state:IMissileState);
   fireMissile(state:IMissileState, player:IPlayer);
 }
@@ -30,7 +30,7 @@ angular.module('services')
 
 
 // TODO use signals / events instead of rootScope stuff
-.factory('Missiles', function($rootScope:ng.IRootScopeService, FB:IFirebaseService, Board:IBoard, Players:IPlayerService, SharedArray:shared.ArrayService, Walls = Wall.IService):IMissileService {
+.factory('Missiles', function($rootScope:ng.IRootScopeService, FB:IFirebaseService, Board:IBoard, Players:IPlayerService, SharedArray:shared.ArrayService, Walls = walls.IService):IMissileService {
 
     var MISSILE_DELAY = 80
 
@@ -44,7 +44,7 @@ angular.module('services')
       return missile.name
     }
 
-    function connect(gameRef:fire.IRef, players:IPlayerState, walls:Wall.IState):IMissileState {
+    function connect(gameRef:fire.IRef, players:IPlayerState, walls:walls.IState):IMissileState {
       var missilesRef = gameRef.child('missiles')
 
       var all = []
@@ -87,13 +87,13 @@ angular.module('services')
     // TODO use a SINGLE timer for ALL missiles (observer?)
     // TODO do any missiles collide with each other?
 
-    function moveMissiles(state:IMissileState, players:IPlayerState, walls:Wall.IState) {
+    function moveMissiles(state:IMissileState, players:IPlayerState, walls:walls.IState) {
       $rootScope.$apply(function() {
         state.all.forEach((m:IMissile) => moveMissile(state, players, walls, m))
       })
     }
 
-    function moveMissile(state:IMissileState, players:IPlayerState, walls:Wall.IState, missile:IMissile) {
+    function moveMissile(state:IMissileState, players:IPlayerState, walls:walls.IState, missile:IMissile) {
       var position = Board.move(missile, missile.direction)
       if (!position) return explodeMissile(state, missile)
 
@@ -120,7 +120,7 @@ angular.module('services')
         explodeMissile(state, hitMissile)
       }
 
-      var hitWall = <Wall.IWall> Board.findHit(walls.all, missile)
+      var hitWall = <walls.IWall> Board.findHit(walls.all, missile)
 
       if (hitWall) {
         explodeMissile(state, missile)
