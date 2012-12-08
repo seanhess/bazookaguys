@@ -12,7 +12,7 @@
 // Who is canonical for restarting the game? (THE WINNER)
 // it's a matter of identifying the people
 
-module Game {
+module games {
 
   var MS_TICK = 80
 
@@ -36,7 +36,7 @@ module Game {
 
     gameOver: signals.ISignal; // finished a game
   }
-
+  
   // HACK: you can type this dependency as function(Game = Game.IService) instead of function(Game:Game.IService)
   // later if we add an interface for it, we'll use the normal syntax
   export var IService = Service(null, null, null, null, null, null, null)
@@ -59,7 +59,7 @@ module Game {
       join: join,
     }
 
-    function connect(gameId:string):Game.IState {
+    function connect(gameId:string):IState {
       var gameRef = FB.game(gameId)
       var statusRef = gameRef.child("status")
       var walls = Walls.connect(gameRef)
@@ -73,7 +73,7 @@ module Game {
       var timer = setInterval(() => onTimer(state), MS_TICK)
       players.currentKilled.add(() => checkWin(state))
 
-      var state:Game.IState = {
+      var state:IState = {
         players:players,
         missiles:missiles,
         walls:walls,
@@ -87,7 +87,7 @@ module Game {
       return state
     }
 
-    function disconnect(game:Game.IState) {
+    function disconnect(game:IState) {
       Players.disconnect(game.players)
       Missiles.disconnect(game.missiles)
       Walls.disconnect(game.walls)
@@ -102,7 +102,7 @@ module Game {
     // if it shows YOU in there, and only YOU, and no walls, then initialize the game
 
     // the main game timer
-    function onTimer(game:Game.IState) {
+    function onTimer(game:IState) {
       if (game.connected === false && isGameSynched(game)) {
         game.connected = true
         onConnect(game)
@@ -113,7 +113,7 @@ module Game {
     }
 
     // the first time I'm fully connected to everything
-    function onConnect(game:Game.IState) {
+    function onConnect(game:IState) {
       console.log("CONNECTED")
 
       if (Players.alivePlayers(game.players.all).length === 1) {
@@ -122,19 +122,19 @@ module Game {
       }
     }
 
-    function isGameSynched(game:Game.IState):bool {
+    function isGameSynched(game:IState):bool {
       // we don't really care about missiles yet
       return Walls.isConnected(game.walls) && Players.isConnected(game.players)
     }
 
     // sets up the game, but doesn't "start" it
-    function setupGame(game:Game.IState) {
+    function setupGame(game:IState) {
       console.log("SETUP GAME")
       Walls.createWalls(game.walls)
       Powerups.clear(game.powerups)
     }
 
-    function startGame(game:Game.IState) {
+    function startGame(game:IState) {
       game.status.started = true
       game.status.winner = ""
       SharedObject.set(game.status)
@@ -145,17 +145,17 @@ module Game {
       })
     }
 
-    function join(state:Game.IState, player:IPlayer) {
+    function join(state:IState, player:IPlayer) {
       // if no one else is here, then initialize the walls?
       Players.add(state.players, player)
     }
 
-    function onStatus(game:Game.IState) {
+    function onStatus(game:IState) {
       if (game.status.winner)
         onWinner(game)
     }
 
-    function onWinner(game:Game.IState) {
+    function onWinner(game:IState) {
       game.gameOver.dispatch(game.status.winner)
       setTimeout(() => resetSelf(game), 1000)
     }
@@ -163,13 +163,13 @@ module Game {
     // resets game, but does NOT make it playable
     // only resets YOU. any players not paying attention don't get reset. they get REMOVED?
     // at least we can make them be dead
-    function resetSelf(game:Game.IState) {
+    function resetSelf(game:IState) {
       var current = Players.current(game.players)
       Players.resetPlayer(game.players, current)
     }
 
     // ONLY called by the actual player. the winner
-    function checkWin(game:Game.IState) {
+    function checkWin(game:IState) {
       var winner = Players.hasWinner(game.players)
       if (!winner) return
 
@@ -182,5 +182,5 @@ module Game {
       setTimeout(() => startGame(game), 2000)
     }
   }
-
+  
 }

@@ -21,7 +21,7 @@ interface GameRouteParams {
 }
 
 angular.module('controllers')
-.controller('GameCtrl', function ($scope, Players:IPlayerService, Missiles:IMissileService, $routeParams:GameRouteParams, $location:ng.ILocationService, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string, Metrics:IMetrics, Game = Game.IService, Keys = Keys.IService) {
+.controller('GameCtrl', function ($scope, Players:IPlayerService, Missiles:IMissileService, $routeParams:GameRouteParams, $location:ng.ILocationService, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string, Metrics:IMetrics, Game = games.IService, Keys = Keys.IService) {
 
   $scope.version = AppVersion
   $scope.gameId = $routeParams.gameId
@@ -40,7 +40,6 @@ angular.module('controllers')
   // Need some concept of a game host, no?
   // SOMEONE needs to "start" the game
   // the first player in the list alphabetically. that can be calculated
-
 
   var game = Game.connect($scope.gameId)
   var player = Players.newPlayer(name, avatar)
