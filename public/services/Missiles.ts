@@ -13,7 +13,6 @@ interface IMissileState {
 
   // private stuff
   ref:fire.IRef;
-  timer:number;
 }
 
 interface IMissile extends IDirectional {
@@ -21,13 +20,13 @@ interface IMissile extends IDirectional {
 }
 
 interface IMissileService {
-  connect(gameRef:fire.IRef, players:IPlayerState, walls:walls.IState):IMissileState;
+  connect(gameRef:fire.IRef):IMissileState;
   disconnect(state:IMissileState);
   fireMissile(state:IMissileState, player:IPlayer);
+  moveMissiles(state:IMissileState, players:IPlayerState, walls:walls.IState);
 }
 
 angular.module('services')
-
 
 // TODO use signals / events instead of rootScope stuff
 .factory('Missiles', function($rootScope:ng.IRootScopeService, FB:IFirebaseService, Board:IBoard, Players:IPlayerService, SharedArray:shared.ArrayService, Walls = walls.IService):IMissileService {
@@ -38,23 +37,22 @@ angular.module('services')
       connect: connect,
       disconnect: disconnect,
       fireMissile: fireMissile,
+      moveMissiles: moveMissiles,
     }
 
     function missileName(missile:IMissile) {
       return missile.name
     }
 
-    function connect(gameRef:fire.IRef, players:IPlayerState, walls:walls.IState):IMissileState {
+    function connect(gameRef:fire.IRef):IMissileState {
       var missilesRef = gameRef.child('missiles')
 
       var all = []
       var shared = <any> SharedArray.bind(missilesRef, missileName)
-      var timer = setInterval(() => moveMissiles(state, players, walls), MISSILE_DELAY)
 
       var state = {
         ref:missilesRef,
         all: <IMissile[]> shared,
-        timer: timer,
       }
 
       return state
@@ -62,7 +60,6 @@ angular.module('services')
 
     function disconnect(state:IMissileState) {
       SharedArray.unbind(<any>state.all)
-      clearInterval(state.timer)
     }
 
     // this does NOT check for deadness. Do that somewhere else

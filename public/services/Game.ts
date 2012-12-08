@@ -6,6 +6,7 @@
 ///<reference path="./Players"/>
 ///<reference path="./Missiles"/>
 ///<reference path="./Powerups"/>
+///<reference path="./Keys"/>
 ///<reference path="../def/angular.d.ts"/>
 ///<reference path="../def/signals.d.ts"/>
 
@@ -39,7 +40,7 @@ module games {
   
   // HACK: you can type this dependency as function(Game = Game.IService) instead of function(Game:Game.IService)
   // later if we add an interface for it, we'll use the normal syntax
-  export var IService = Service(null, null, null, null, null, null, null)
+  export var IService = Service(null, null, null, null, null, null)
   angular.module('services').factory('Game', Service)
 
   function Service(
@@ -51,6 +52,7 @@ module games {
     Board:IBoard,
     Powerups = Powerup.IService,
     Walls = walls.IService,
+    Keys = keys.IService,
   ) { 
 
     return {
@@ -64,7 +66,7 @@ module games {
       var statusRef = gameRef.child("status")
       var walls = Walls.connect(gameRef)
       var players = Players.connect(gameRef)
-      var missiles = Missiles.connect(gameRef, players, walls)
+      var missiles = Missiles.connect(gameRef)
       var powerups = Powerups.connect(gameRef)
 
       var status = SharedObject.bind(statusRef)
@@ -73,6 +75,8 @@ module games {
       var timer = setInterval(() => onTimer(state), MS_TICK)
       players.currentKilled.add(() => checkWin(state))
 
+      Keys.connect()
+    
       var state:IState = {
         players:players,
         missiles:missiles,
@@ -108,8 +112,42 @@ module games {
         onConnect(game)
       }
 
+      // TODO decouple movement, game timer, missile movement
+      Missiles.moveMissiles(game.missiles, game.players, game.walls)
+
       // POWERUPS
       Powerups.tick(game.powerups, MS_TICK)
+
+      moveTick(game)
+    }
+
+    function moveTick(game:IState) {
+      var current = Players.current(game.players)
+
+       //TODO dead-person headstone. allow you to chat when dead
+      //if (e.keyCode == Keys.ENTER) {
+        //if ($scope.chatting) {
+          //$scope.sendTaunt()
+        //}
+        //else {
+          //$scope.chatting = true
+          //$scope.taunt = " "
+        //}
+      //}
+
+      // you can do ANYTHING if you are dead, or if the game is currently OVER
+      if (!Players.isAlive(current)) return
+      if (game.status.winner) return
+
+      if (Keys.last() === Keys.SPACE)
+        return Missiles.fireMissile(game.missiles, current)
+
+      // otherwise it's movement
+      var direction = Keys.keyCodeToDirection(Keys.last())
+
+      if (!direction) return
+
+      Players.move(game.players, game.walls, current, direction)
     }
 
     // the first time I'm fully connected to everything

@@ -1,8 +1,13 @@
 ///<reference path="../def/angular.d.ts"/>
 ///<reference path="../def/jquery.d.ts"/>
+///<reference path="../def/underscore.d.ts"/>
 ///<reference path="./Board"/>
 
-module Keys {
+module keys {
+
+  // HACK use blah = IService instead of blah:IService in a function to type this as whatever Keys.Service returns
+  export var IService = Service(null, null)
+  angular.module('services').factory('Keys', Service)
 
   function Service($rootScope:ng.IScope, Board:IBoard) {
 
@@ -11,21 +16,43 @@ module Keys {
         RIGHT = 39, 
         DOWN = 40,
         SPACE = 32,
-        ENTER = 13
+        ENTER = 13,
+        SHIFT = 16
+
+    var pressed = []
 
     return {
       keyCodeToDirection: keyCodeToDirection,
       connect: connect,
       disconnect: disconnect,
+      last: last,
       ENTER: ENTER,
       SPACE: SPACE,
     }
 
-    function connect(onPress:Function) {
+    //function connect(onPress:Function) {
+      //$(document).bind("keydown", function(e) {
+        //$rootScope.$apply(function() {
+          //onPress(e)
+        //})
+      //})
+    //}
+
+    // gives the last pressed key
+    function last() {
+      return pressed[pressed.length-1]
+    }
+
+    function connect() {
       $(document).bind("keydown", function(e) {
-        $rootScope.$apply(function() {
-          onPress(e)
-        })
+        if (last() == e.keyCode) return
+        pressed.push(e.keyCode)
+        //console.log("DOWN", pressed)
+      })
+
+      $(document).bind("keyup", function(e) {
+        pressed = _.without(pressed, e.keyCode)
+        //console.log("UP", pressed)
       })
     }
 
@@ -41,9 +68,5 @@ module Keys {
       return null
     }
   }
-
-  // HACK use blah = IService instead of blah:IService in a function to type this as whatever Keys.Service returns
-  export var IService = Service(null, null)
-  angular.module('services').factory('Keys', Service)
 
 }

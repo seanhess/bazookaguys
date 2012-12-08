@@ -7,7 +7,6 @@
 ///<reference path="../services/Board"/>
 ///<reference path="../services/SoundEffects"/>
 ///<reference path="../services/AppVersion"/>
-///<reference path="../services/Keys"/>
 
 ///<reference path="../filters/position.ts"/>
 ///<reference path="../directives/keys.ts"/>
@@ -21,7 +20,7 @@ interface GameRouteParams {
 }
 
 angular.module('controllers')
-.controller('GameCtrl', function ($scope, Players:IPlayerService, Missiles:IMissileService, $routeParams:GameRouteParams, $location:ng.ILocationService, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string, Metrics:IMetrics, Game = games.IService, Keys = Keys.IService) {
+.controller('GameCtrl', function ($scope, Players:IPlayerService, Missiles:IMissileService, $routeParams:GameRouteParams, $location:ng.ILocationService, Board:IBoard, SoundEffects:ISoundEffectsService, AppVersion:string, Metrics:IMetrics, Game = games.IService) {
 
   $scope.version = AppVersion
   $scope.gameId = $routeParams.gameId
@@ -86,37 +85,6 @@ angular.module('controllers')
     return (player.name == name)
   }
 
-
-  // ignore ALL key presses if they are dead
-  Keys.connect(function (e) {
-    var current = Players.current(game.players)
-
-    // TODO dead-person headstone. allow you to chat when dead
-    if (e.keyCode == Keys.ENTER) {
-      if ($scope.chatting) {
-        $scope.sendTaunt()
-      }
-      else {
-        $scope.chatting = true
-        $scope.taunt = " "
-      }
-    }
-
-    // you can do ANYTHING if you are dead, or if the game is currently OVER
-    if (!Players.isAlive(current)) return
-    if (game.status.winner) return
-
-    if (e.keyCode === Keys.SPACE)
-      return Missiles.fireMissile(game.missiles, current)
-
-    // otherwise it's movement
-    var direction = Keys.keyCodeToDirection(e.keyCode)
-
-    if (!direction) return
-
-    Players.move(game.players, game.walls, current, direction)
-  })
-
   $scope.sendTaunt = function() {
     $scope.chatting = false
     var current = Players.current(game.players)
@@ -132,6 +100,6 @@ angular.module('controllers')
   $scope.$on('$destroy', function() {
     Game.disconnect(game)
     SoundEffects.pause(music)
-    Keys.disconnect()
+    //Keys.disconnect()
   });
 })
