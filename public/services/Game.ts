@@ -116,7 +116,7 @@ module games {
       Missiles.moveMissiles(game.missiles, game.players, game.walls)
 
       // POWERUPS
-      Powerups.tick(game.powerups, MS_TICK)
+      // Powerups.tick(game.powerups, MS_TICK)
 
       moveTick(game)
     }
