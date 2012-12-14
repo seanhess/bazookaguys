@@ -26,6 +26,7 @@ module keys {
       connect: connect,
       disconnect: disconnect,
       last: last,
+      pop: pop,
       ENTER: ENTER,
       SPACE: SPACE,
     }
@@ -43,16 +44,22 @@ module keys {
       return pressed[pressed.length-1]
     }
 
+    function pop() {
+      var key = last()
+      pressed = []
+      return key
+    }
+
     function connect() {
       $(document).bind("keydown", function(e) {
         if (last() == e.keyCode) return
         pressed.push(e.keyCode)
-        //console.log("DOWN", pressed)
+        console.log("DOWN", pressed)
       })
 
       $(document).bind("keyup", function(e) {
         pressed = _.without(pressed, e.keyCode)
-        //console.log("UP", pressed)
+        console.log("UP", pressed)
       })
     }
 

@@ -139,11 +139,14 @@ module games {
       if (!Players.isAlive(current)) return
       if (game.status.winner) return
 
-      if (Keys.last() === Keys.SPACE)
+      // grab the keys
+      var key = Keys.pop()
+
+      if (key === Keys.SPACE)
         return Missiles.fireMissile(game.missiles, current)
 
       // otherwise it's movement
-      var direction = Keys.keyCodeToDirection(Keys.last())
+      var direction = Keys.keyCodeToDirection(key)
 
       if (!direction) return
 
