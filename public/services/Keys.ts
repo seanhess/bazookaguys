@@ -54,12 +54,12 @@ module keys {
       $(document).bind("keydown", function(e) {
         if (last() == e.keyCode) return
         pressed.push(e.keyCode)
-        console.log("DOWN", pressed)
+        //console.log("DOWN", pressed)
       })
 
       $(document).bind("keyup", function(e) {
         pressed = _.without(pressed, e.keyCode)
-        console.log("UP", pressed)
+        //console.log("UP", pressed)
       })
     }
 

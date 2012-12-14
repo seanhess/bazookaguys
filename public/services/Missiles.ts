@@ -99,7 +99,7 @@ angular.module('services')
       missile.direction = position.direction
 
       // Check to see if the missile hits anyone
-      var hitPlayer = <IPlayer> Board.findHit(players.all, missile)
+      var hitPlayer = <IPlayer> Board.findHit(Players.alivePlayers(players.all), missile)
       var current = Players.current(players)
 
       if (hitPlayer && hitPlayer.name != current.name) {

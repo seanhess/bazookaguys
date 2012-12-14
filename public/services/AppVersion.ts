@@ -3,5 +3,5 @@
 angular.module('services')
 
 .factory('AppVersion', function():string {
-  return "1.7.walls"
+  return "1.7.walls.3"
 })

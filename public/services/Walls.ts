@@ -5,7 +5,7 @@
 
 module walls {
 
-  var NUM_WALLS = 20
+  var NUM_WALLS = 60
 
   export interface IWall extends IPoint {
     strength: number;
