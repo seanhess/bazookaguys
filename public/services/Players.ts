@@ -137,7 +137,7 @@ angular.module('services')
   }
 
   function deadPlayers(players:IPlayer[]):IPlayer[] {
-    return players.filter((p:IPlayer) => p.state == STATE.DEAD)
+    return players.filter((p:IPlayer) => p.state != STATE.ALIVE)
   }
 
   function newPlayer(name:string, avatar:string) {
