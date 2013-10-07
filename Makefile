@@ -15,11 +15,11 @@ install:
 
 upload:
 	# sync all the files
-	rsync -rav -e ssh --delete --exclude-from config/exclude.txt . deploy@bazookaguys:~/bazookaguys
+	rsync -rav -e ssh --delete --exclude-from config/exclude.txt . root@bazookaguys.orbit.al:~/bazookaguys
 
 deploy: upload
 	# run the remote commands
-	ssh -t deploy@bazookaguys "cd ~/bazookaguys && config/deploy.sh"
+	ssh -t root@bazookaguys.orbit.al "cd ~/bazookaguys && config/deploy.sh"
 
 #test-upload: 
 	#rsync -rav -e ssh --delete --exclude-from config/exclude.txt . deploy@bazookaguys:~/test.bazookaguys
